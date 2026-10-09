@@ -510,7 +510,7 @@ export function PropertyDetailsView({ property }: { property: Property }) {
                 {/* Send Enquiry Button */}
                 <button
                   onClick={() => setIsEnquiryModalOpen(true)}
-                  className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-2xl font-bold text-sm shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition cursor-pointer"
+                  className="btn-3d w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-2xl font-bold text-sm shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition cursor-pointer"
                 >
                   <Send size={16} />
                   <span>Send Free Enquiry</span>
@@ -522,7 +522,7 @@ export function PropertyDetailsView({ property }: { property: Property }) {
                     href={`https://wa.me/91${property.owner.whatsapp}?text=${encodedWhatsAppMsg}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold text-sm shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition"
+                    className="btn-3d w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold text-sm shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition"
                   >
                     <MessageCircle size={17} />
                     <span>Chat on WhatsApp</span>
@@ -533,7 +533,7 @@ export function PropertyDetailsView({ property }: { property: Property }) {
                 {property.owner.phone && (
                   <a
                     href={`tel:+91${property.owner.phone}`}
-                    className="w-full py-3 px-4 glass-card hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition border border-slate-200 dark:border-slate-800"
+                    className="btn-3d w-full py-3 px-4 glass-card hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition border border-slate-200 dark:border-slate-800"
                   >
                     <Phone size={16} />
                     <span>Call Owner (+91 {property.owner.phone})</span>

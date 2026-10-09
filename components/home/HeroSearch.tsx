@@ -269,7 +269,7 @@ export function HeroSearch({ onLocationDenied }: HeroSearchProps) {
             {/* Primary CTA Button with Emerald Theme */}
             <button
               type="submit"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 active:scale-[0.99] text-white font-black text-sm sm:text-base shadow-lg shadow-emerald-600/30 transition-all shrink-0 cursor-pointer"
+              className="btn-3d inline-flex items-center justify-center gap-2 px-8 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 active:scale-[0.99] text-white font-black text-sm sm:text-base shadow-lg shadow-emerald-600/30 transition-all shrink-0 cursor-pointer"
             >
               <Search size={18} />
               <span>Find Stay</span>

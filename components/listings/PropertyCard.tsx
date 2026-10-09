@@ -15,6 +15,7 @@ import {
 import { Property } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { useSavedProperties } from '@/lib/utils/favorites';
+import { Tilt3D } from '@/components/ui/Tilt3D';
 
 interface PropertyCardProps {
   property: Property;
@@ -35,9 +36,9 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
     ? property.rooms[0].sharing.replace('-', ' ').replace('plus', '+')
     : 'Multiple Sharing';
 
-  return (
+  const cardContent = (
     <div 
-      className={`group glass-card hover:border-emerald-500/40 dark:hover:border-emerald-500/50 rounded-3xl transition-all duration-300 flex flex-col overflow-hidden relative ${
+      className={`group glass-card hover:border-emerald-500/50 dark:hover:border-emerald-500/60 rounded-3xl transition-all duration-300 flex flex-col overflow-hidden relative preserve-3d h-full ${
         viewMode === 'list' ? 'sm:flex-row' : ''
       }`}
     >
@@ -59,7 +60,7 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
 
         {/* Top Badges */}
-        <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
+        <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10 pointer-events-none translate-z-20">
           <div className="flex items-center gap-1.5 flex-wrap pointer-events-auto">
             {/* Gender Badge */}
             <span 
@@ -99,7 +100,7 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
         </div>
 
         {/* Verified Badge Overlay at bottom of image */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-2 z-10">
+        <div className="absolute bottom-3 left-3 flex items-center gap-2 z-10 translate-z-20">
           {property.verified && (
             <span className="inline-flex items-center gap-1 bg-emerald-600/95 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md shadow-sm backdrop-blur-sm">
               <ShieldCheck size={13} className="shrink-0" />
@@ -181,7 +182,7 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
 
           <Link
             href={`/property/${property.id}`}
-            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold transition-all duration-200 shadow-sm hover:shadow"
+            className="btn-3d inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold transition-all duration-200 shadow-sm hover:shadow"
           >
             <span>View details</span>
             <ArrowRight size={14} />
@@ -189,5 +190,15 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
         </div>
       </div>
     </div>
+  );
+
+  if (viewMode === 'list') {
+    return cardContent;
+  }
+
+  return (
+    <Tilt3D maxTilt={7} scale={1.018} enableGlare={true} className="h-full">
+      {cardContent}
+    </Tilt3D>
   );
 }

@@ -61,6 +61,149 @@ body {
   box-shadow: 0 0 35px -5px rgba(16, 185, 129, 0.45);
 }
 
+/* 3D Perspective & Depth System */
+.perspective-800 {
+  perspective: 800px;
+}
+.perspective-1000 {
+  perspective: 1000px;
+}
+.perspective-1500 {
+  perspective: 1500px;
+}
+.perspective-2000 {
+  perspective: 2000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* 3D Translation Elevation Utilities */
+.translate-z-10 {
+  transform: translateZ(10px);
+}
+.translate-z-20 {
+  transform: translateZ(20px);
+}
+.translate-z-30 {
+  transform: translateZ(30px);
+}
+.translate-z-40 {
+  transform: translateZ(40px);
+}
+.translate-z-50 {
+  transform: translateZ(50px);
+}
+
+/* Floating 3D Keyframe Animations */
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(1.5deg);
+  }
+}
+
+@keyframes float-reverse {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(12px) rotate(-1.5deg);
+  }
+}
+
+@keyframes float-3d-isometric {
+  0%, 100% {
+    transform: perspective(1200px) rotateY(-12deg) rotateX(10deg) translateY(0px);
+  }
+  50% {
+    transform: perspective(1200px) rotateY(-6deg) rotateX(14deg) translateY(-16px);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.25;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(250%) skewX(-20deg);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 5s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 6s ease-in-out infinite;
+}
+
+.animate-float-3d-isometric {
+  animation: float-3d-isometric 6s ease-in-out infinite;
+}
+
+.animate-float-3d {
+  animation: float-3d-isometric 7s ease-in-out infinite;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 3D Card Hover Depth & Elevation */
+.card-3d-hover {
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.card-3d-hover:hover {
+  transform: perspective(1000px) translateY(-8px) rotateX(3deg) scale(1.02);
+  box-shadow: 0 25px 40px -15px rgba(16, 185, 129, 0.25), 0 0 25px -5px rgba(16, 185, 129, 0.15);
+}
+
+.dark .card-3d-hover:hover {
+  box-shadow: 0 25px 45px -15px rgba(0, 0, 0, 0.85), 0 0 30px -5px rgba(16, 185, 129, 0.3);
+}
+
+/* 3D Tactile Button Push */
+.btn-3d {
+  transition: all 0.15s ease-out;
+  transform: translateY(0);
+  box-shadow: 0 4px 0 #047857, 0 8px 20px rgba(16, 185, 129, 0.35);
+}
+
+.btn-3d:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #047857, 0 12px 25px rgba(16, 185, 129, 0.45);
+}
+
+.btn-3d:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #047857, 0 4px 10px rgba(16, 185, 129, 0.2);
+}
+
 /* Leaflet map containment & stacking fix */
 .leaflet-container {
   width: 100% !important;
