@@ -51,29 +51,6 @@ Make sure you have installed:
 - npm / yarn / pnpm / bun
 - Git
 
-Installation
-
-Clone the repository:
-
-git clone https://github.com/ParmarManthanrajsinh/Nestora.git
-
-Go to the project directory:
-
-cd Nestora
-
-Install dependencies:
-
-npm install
-
-Run the development server:
-
-npm run dev
-
-Open your browser and visit:
-
-http://localhost:3000
-
----
 
 📂 Project Structure
 
@@ -107,7 +84,7 @@ Nestora is developed as a solution for the Smart Gujarat Hackathon, focusing on 
 
 Nestora Team
 
-- Tirth Team Leader
+- Tirth 
 - Milan
 - Rajdeep
 - Soham
