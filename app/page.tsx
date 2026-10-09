@@ -77,8 +77,8 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Right: 3D Floating Interactive Visualizer */}
-            <div className="lg:col-span-5 flex justify-center w-full">
+            {/* Right: 3D Floating Interactive Visualizer (Desktop Only - Clean on Mobile) */}
+            <div className="hidden lg:flex lg:col-span-5 justify-center w-full">
               <Hero3DVisualizer />
             </div>
 
@@ -148,10 +148,10 @@ export default async function HomePage() {
               <Tilt3D key={loc.id} maxTilt={8} scale={1.02} enableGlare={true}>
                 <Link
                   href={`/search?q=${encodeURIComponent(loc.name)}&lat=${loc.latitude}&lng=${loc.longitude}`}
-                  className="group glass-card card-3d-hover hover:border-emerald-500/40 p-5 rounded-3xl transition-all duration-300 flex flex-col justify-between h-full preserve-3d"
+                  className="group glass-card card-3d-hover hover:border-emerald-500/40 p-5 rounded-3xl transition-all duration-300 flex flex-col justify-between h-full md:preserve-3d"
                 >
-                  <div className="preserve-3d">
-                    <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-sm mb-3 group-hover:scale-110 transition-transform translate-z-20">
+                  <div className="md:preserve-3d">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-sm mb-3 group-hover:scale-110 transition-transform md:translate-z-20">
                       <MapPin size={20} />
                     </div>
                     <h3 className="font-bold text-slate-900 dark:text-white text-base group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
@@ -250,8 +250,8 @@ export default async function HomePage() {
               },
             ].map((item) => (
               <Tilt3D key={item.step} maxTilt={8} scale={1.02} enableGlare={true}>
-                <div className="p-6 rounded-3xl glass-card card-3d-hover relative h-full preserve-3d">
-                  <div className="text-3xl font-black text-emerald-600/40 dark:text-emerald-400/40 mb-3 font-mono translate-z-20">
+                <div className="p-6 rounded-3xl glass-card card-3d-hover relative h-full md:preserve-3d">
+                  <div className="text-3xl font-black text-emerald-600/40 dark:text-emerald-400/40 mb-3 font-mono md:translate-z-20">
                     {item.step}
                   </div>
                   <h3 className="font-bold text-slate-900 dark:text-white text-base mb-1.5">{item.title}</h3>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 
 interface Tilt3DProps {
   children: React.ReactNode;
@@ -25,10 +25,24 @@ export function Tilt3D({
     y: 50,
   });
   const [isHovered, setIsHovered] = useState(false);
+  const [isTouchOrMobile, setIsTouchOrMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      // Disable 3D tilt on devices with coarse pointer (touch) or mobile screen width (< 768px)
+      const hasTouch = window.matchMedia('(pointer: coarse)').matches;
+      const isMobileWidth = window.innerWidth < 768;
+      setIsTouchOrMobile(hasTouch || isMobileWidth);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!cardRef.current) return;
+      if (isTouchOrMobile || !cardRef.current) return;
       const rect = cardRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
@@ -49,18 +63,25 @@ export function Tilt3D({
         setGlareStyle({ opacity: 1, x: glareX, y: glareY });
       }
     },
-    [maxTilt, scale, enableGlare]
+    [isTouchOrMobile, maxTilt, scale, enableGlare]
   );
 
   const handleMouseEnter = () => {
+    if (isTouchOrMobile) return;
     setIsHovered(true);
   };
 
   const handleMouseLeave = () => {
+    if (isTouchOrMobile) return;
     setIsHovered(false);
     setTransformStyle('perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)');
     setGlareStyle((prev) => ({ ...prev, opacity: 0 }));
   };
+
+  // On mobile / touch devices, render plain clean container with zero 3D overhead
+  if (isTouchOrMobile) {
+    return <div className={`relative ${className}`}>{children}</div>;
+  }
 
   return (
     <div
