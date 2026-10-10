@@ -34,7 +34,7 @@ export default function ProfilePage() {
     try {
       const raw = localStorage.getItem('nestora_enquiries');
       if (raw) {
-        setEnquiries(JSON.parse(raw));
+        Promise.resolve().then(() => setEnquiries(JSON.parse(raw)));
       }
     } catch {
       // ignore

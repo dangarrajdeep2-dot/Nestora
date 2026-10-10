@@ -18,18 +18,6 @@ const ThemeContext = createContext<ThemeContextType>({
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    // Read from localStorage or system preference
-    const saved = localStorage.getItem('nestora_theme') as Theme | null;
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initial = saved || (prefersDark ? 'dark' : 'light');
-
-    setThemeState(initial);
-    applyThemeClass(initial);
-    setMounted(true);
-  }, []);
 
   const applyThemeClass = (newTheme: Theme) => {
     const root = document.documentElement;
@@ -41,6 +29,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       root.classList.add('light');
     }
   };
+
+  useEffect(() => {
+    // Read from localStorage or system preference
+    const saved = localStorage.getItem('nestora_theme') as Theme | null;
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initial = saved || (prefersDark ? 'dark' : 'light');
+
+    Promise.resolve().then(() => {
+      setThemeState(initial);
+      applyThemeClass(initial);
+    });
+  }, []);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);

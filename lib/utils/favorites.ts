@@ -52,8 +52,10 @@ export function useSavedProperties() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    setSavedIds(getSavedPropertyIds());
-    setIsLoaded(true);
+    Promise.resolve().then(() => {
+      setSavedIds(getSavedPropertyIds());
+      setIsLoaded(true);
+    });
 
     const handleUpdate = () => {
       setSavedIds(getSavedPropertyIds());

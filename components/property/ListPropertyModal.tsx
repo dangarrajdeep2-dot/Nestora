@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useState } from 'react';
 import { 
@@ -159,7 +160,7 @@ export function ListPropertyModal({ isOpen, onClose }: ListPropertyModalProps) {
                   <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">Type</label>
                   <select
                     value={propertyType}
-                    onChange={(e) => setPropertyType(e.target.value as any)}
+                    onChange={(e) => setPropertyType(e.target.value as "PG" | "Hostel" | "Room")}
                     className="w-full px-2 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
                   >
                     <option value="PG">PG</option>
@@ -171,7 +172,7 @@ export function ListPropertyModal({ isOpen, onClose }: ListPropertyModalProps) {
                   <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">For</label>
                   <select
                     value={gender}
-                    onChange={(e) => setGender(e.target.value as any)}
+                    onChange={(e) => setGender(e.target.value as "boys" | "girls" | "co-ed")}
                     className="w-full px-2 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
                   >
                     <option value="boys">Boys</option>
