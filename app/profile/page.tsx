@@ -194,6 +194,17 @@ export default function ProfilePage() {
                   <span>Search by College / Area</span>
                 </div>
               </Link>
+
+              <Link
+                href="/admin/login"
+                className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition text-xs font-semibold"
+              >
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={16} className="text-slate-400" />
+                  <span>Admin Portal</span>
+                </div>
+                <span className="text-[10px] text-slate-400">Login &rarr;</span>
+              </Link>
             </div>
           </div>
 

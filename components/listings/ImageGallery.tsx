@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { ListingImage } from '@/types';
-import Image from 'next/image';
+import { SafeImage } from '@/components/ui/SafeImage';
 
 export default function ImageGallery({ images }: { images: ListingImage[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -22,7 +22,7 @@ export default function ImageGallery({ images }: { images: ListingImage[] }) {
 
   return (
     <div className="relative h-64 sm:h-80 w-full bg-gray-100 overflow-hidden group">
-      <Image
+      <SafeImage
         src={images[currentIndex].image_url}
         alt={`Hostel Image ${currentIndex + 1}`}
         fill

@@ -132,6 +132,7 @@ export function Footer() {
             <Link href="/" className="hover:text-emerald-400 transition">Privacy Policy</Link>
             <Link href="/" className="hover:text-emerald-400 transition">Terms of Service</Link>
             <Link href="/" className="hover:text-emerald-400 transition">Student Safety Tips</Link>
+            <Link href="/admin/login" className="hover:text-emerald-400 transition text-slate-600 hover:underline">Admin Login</Link>
           </div>
         </div>
       </div>

@@ -84,6 +84,11 @@ interface SupabasePropertyRow {
 let cachedProperties: Property[] | null = null;
 let lastFetch = 0;
 
+export function invalidatePropertiesCache(): void {
+  cachedProperties = null;
+  lastFetch = 0;
+}
+
 async function fetchAllProperties(): Promise<Property[]> {
   if (!isSupabaseConfigured) {
     return MOCK_PROPERTIES;

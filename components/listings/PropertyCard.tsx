@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { SafeImage } from '@/components/ui/SafeImage';
 import { 
   ShieldCheck, 
   MapPin, 
@@ -48,7 +48,7 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
           viewMode === 'list' ? 'sm:w-72 h-56 sm:h-auto shrink-0' : 'h-52 w-full'
         }`}
       >
-        <Image
+        <SafeImage
           src={mainImage}
           alt={property.title}
           fill
