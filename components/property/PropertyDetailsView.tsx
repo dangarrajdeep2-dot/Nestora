@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
+import { SafeImage } from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import { 
   ShieldCheck, 
@@ -116,7 +116,7 @@ export function PropertyDetailsView({ property }: { property: Property }) {
             {/* 1. Image Gallery */}
             <div className="space-y-3">
               <div className="relative h-72 sm:h-96 w-full rounded-3xl overflow-hidden bg-slate-200 dark:bg-slate-800 shadow-md">
-                <Image
+                <SafeImage
                   src={images[activeImageIndex]}
                   alt={property.title}
                   fill
@@ -179,7 +179,7 @@ export function PropertyDetailsView({ property }: { property: Property }) {
                         activeImageIndex === idx ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-transparent opacity-70 hover:opacity-100'
                       }`}
                     >
-                      <Image src={img} alt="Thumbnail" fill className="object-cover" />
+                      <SafeImage src={img} alt="Thumbnail" fill className="object-cover" />
                     </button>
                   ))}
                 </div>
