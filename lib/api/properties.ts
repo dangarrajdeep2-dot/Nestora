@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FilterState, Property, College, LocationRef, Enquiry } from '@/types';
+import { FilterState, Property, College, LocationRef, Enquiry, Review } from '@/types';
 import { MOCK_PROPERTIES, MOCK_COLLEGES, POPULAR_LOCATIONS } from './mockData';
 import { calculateDistance } from '@/lib/utils/distance';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
@@ -89,13 +89,38 @@ export function invalidatePropertiesCache(): void {
   lastFetch = 0;
 }
 
+function mergeLocalReviews(properties: Property[]): Property[] {
+  if (typeof window === 'undefined') return properties;
+  try {
+    const localReviews: Review[] = JSON.parse(localStorage.getItem('nestora_reviews') || '[]');
+    if (!Array.isArray(localReviews) || localReviews.length === 0) return properties;
+
+    return properties.map((prop) => {
+      const propLocal = localReviews.filter(
+        (lr) => lr.propertyId === prop.id && !(prop.reviews || []).some((r) => r.id === lr.id)
+      );
+      if (propLocal.length === 0) return prop;
+      const combined = [...propLocal, ...(prop.reviews || [])];
+      const avg = combined.reduce((sum, r) => sum + r.rating, 0) / combined.length;
+      return {
+        ...prop,
+        reviews: combined,
+        rating: Number(avg.toFixed(1)),
+        reviewCount: combined.length,
+      };
+    });
+  } catch {
+    return properties;
+  }
+}
+
 async function fetchAllProperties(): Promise<Property[]> {
   if (!isSupabaseConfigured) {
-    return MOCK_PROPERTIES;
+    return mergeLocalReviews(MOCK_PROPERTIES);
   }
   
   if (cachedProperties && Date.now() - lastFetch < 60000) {
-    return cachedProperties;
+    return mergeLocalReviews(cachedProperties);
   }
 
   try {
@@ -228,10 +253,10 @@ async function fetchAllProperties(): Promise<Property[]> {
 
     cachedProperties = mappedProperties;
     lastFetch = Date.now();
-    return mappedProperties;
+    return mergeLocalReviews(mappedProperties);
   } catch (err) {
     console.error('Error in fetchAllProperties:', err);
-    return MOCK_PROPERTIES;
+    return mergeLocalReviews(MOCK_PROPERTIES);
   }
 }
 
@@ -493,3 +518,67 @@ export async function submitEnquiry(enquiry: Omit<Enquiry, 'id' | 'status' | 'cr
 
   return newEnquiry;
 }
+
+/**
+ * Submit student rating & review with Supabase insert & localStorage sync
+ */
+export async function submitReview(review: {
+  propertyId: string;
+  authorName: string;
+  college: string;
+  course?: string;
+  rating: number;
+  comment: string;
+  verifiedStay?: boolean;
+}): Promise<Review> {
+  const newReview: Review = {
+    id: `rev-${Date.now()}`,
+    propertyId: review.propertyId,
+    authorName: review.authorName.trim(),
+    college: review.college.trim(),
+    course: review.course?.trim() || undefined,
+    rating: Math.min(5, Math.max(1, Math.round(review.rating * 10) / 10)),
+    comment: review.comment.trim(),
+    date: 'Just now',
+    verifiedStay: Boolean(review.verifiedStay),
+    helpfulCount: 0,
+  };
+
+  if (isSupabaseConfigured) {
+    try {
+      const { data, error } = await supabase.from('reviews').insert([{
+        property_id: review.propertyId,
+        author_name: newReview.authorName,
+        college: newReview.college,
+        course: newReview.course || null,
+        rating: newReview.rating,
+        comment: newReview.comment,
+        verified_stay: newReview.verifiedStay,
+        helpful_count: 0,
+      }]).select().single();
+
+      if (!error && data) {
+        newReview.id = data.id;
+        newReview.date = data.date ? new Date(data.date).toLocaleDateString() : 'Just now';
+      } else if (error) {
+        console.warn('Supabase review insert failed, using local store:', error.message);
+      }
+    } catch (err) {
+      console.warn('Could not insert review to Supabase:', err);
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    try {
+      const existing: Review[] = JSON.parse(localStorage.getItem('nestora_reviews') || '[]');
+      existing.unshift(newReview);
+      localStorage.setItem('nestora_reviews', JSON.stringify(existing));
+    } catch {
+      // ignore
+    }
+  }
+
+  invalidatePropertiesCache();
+  return newReview;
+}
+

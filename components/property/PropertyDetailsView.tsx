@@ -22,12 +22,14 @@ import {
   Share2,
   Calendar,
   CheckCircle2,
-  Lock
+  Lock,
+  ThumbsUp
 } from 'lucide-react';
-import { Property } from '@/types';
+import { Property, Review } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { useSavedProperties } from '@/lib/utils/favorites';
 import { EnquiryModal } from './EnquiryModal';
+import { ReviewModal } from './ReviewModal';
 import dynamic from 'next/dynamic';
 
 const PropertyMap = dynamic(() => import('@/components/listings/PropertyMap'), {
@@ -41,8 +43,32 @@ export function PropertyDetailsView({ property }: { property: Property }) {
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedRoomForEnquiry, setSelectedRoomForEnquiry] = useState<string | undefined>();
   const [isCopied, setIsCopied] = useState(false);
+
+  const [reviews, setReviews] = useState<Review[]>(property.reviews || []);
+  const [avgRating, setAvgRating] = useState<number>(property.rating);
+  const [reviewCount, setReviewCount] = useState<number>(property.reviewCount);
+  const [helpfulCounts, setHelpfulCounts] = useState<Record<string, number>>({});
+  const [votedHelpful, setVotedHelpful] = useState<Record<string, boolean>>({});
+
+  const handleReviewSubmitted = (newReview: Review) => {
+    const updated = [newReview, ...reviews];
+    setReviews(updated);
+    const newAvg = updated.reduce((sum, r) => sum + r.rating, 0) / updated.length;
+    setAvgRating(Number(newAvg.toFixed(1)));
+    setReviewCount(updated.length);
+  };
+
+  const handleToggleHelpful = (reviewId: string, initialCount = 0) => {
+    if (votedHelpful[reviewId]) return;
+    setVotedHelpful((prev) => ({ ...prev, [reviewId]: true }));
+    setHelpfulCounts((prev) => ({
+      ...prev,
+      [reviewId]: (prev[reviewId] ?? initialCount) + 1,
+    }));
+  };
 
   const images = property.images && property.images.length > 0 
     ? property.images 
@@ -235,15 +261,19 @@ export function PropertyDetailsView({ property }: { property: Property }) {
 
               {/* Rating and Availability Highlights */}
               <div className="flex items-center gap-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex-wrap">
-                <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('student-reviews')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="flex items-center gap-1.5 hover:opacity-80 transition cursor-pointer text-left"
+                >
                   <div className="flex items-center gap-1 bg-amber-500/10 text-amber-800 dark:text-amber-300 font-bold px-2 py-1 rounded-lg text-sm border border-amber-500/20">
                     <Star size={15} className="fill-amber-400 text-amber-400" />
-                    <span>{property.rating.toFixed(1)}</span>
+                    <span>{avgRating.toFixed(1)}</span>
                   </div>
                   <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    ({property.reviewCount} Student Reviews)
+                    ({reviewCount} Student {reviewCount === 1 ? 'Review' : 'Reviews'})
                   </span>
-                </div>
+                </button>
 
                 {property.isAvailableNow && (
                   <div className="flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
@@ -440,35 +470,129 @@ export function PropertyDetailsView({ property }: { property: Property }) {
               </div>
             </div>
 
-            {/* 8. Student Reviews */}
-            {property.reviews && property.reviews.length > 0 && (
-              <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200/60 dark:border-slate-800/80 space-y-5">
-                <div className="flex items-center justify-between">
+            {/* 8. Student Reviews & Ratings */}
+            <div id="student-reviews" className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200/60 dark:border-slate-800/80 space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
                   <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
-                    Student Reviews & Feedback
+                    Student Ratings & Reviews
                   </h2>
-                  <div className="flex items-center gap-1 text-sm font-bold text-amber-600 dark:text-amber-400">
-                    <Star size={16} className="fill-amber-400 text-amber-400" />
-                    <span>{property.rating.toFixed(1)} / 5</span>
-                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Authentic feedback from verified student residents
+                  </p>
                 </div>
+                
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300 font-bold text-sm border border-amber-500/20">
+                    <Star size={16} className="fill-amber-400 text-amber-400" />
+                    <span>{avgRating.toFixed(1)} / 5</span>
+                    <span className="text-xs text-slate-400 dark:text-slate-500 font-normal">
+                      ({reviews.length})
+                    </span>
+                  </div>
 
-                <div className="space-y-4">
-                  {property.reviews.map((rev) => (
-                    <div key={rev.id} className="p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="font-bold text-sm text-slate-900 dark:text-white">{rev.authorName}</div>
-                        <div className="text-xs text-slate-400">{rev.date}</div>
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">{rev.college}</div>
-                      <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                        &quot;{rev.comment}&quot;
-                      </p>
-                    </div>
-                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setIsReviewModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white text-xs sm:text-sm font-bold px-3.5 py-2 rounded-xl shadow-md shadow-emerald-500/20 transition cursor-pointer active:scale-95"
+                  >
+                    <Star size={14} className="fill-white" />
+                    <span>Rate this Stay</span>
+                  </button>
                 </div>
               </div>
-            )}
+
+              {reviews.length === 0 ? (
+                <div className="py-10 px-4 text-center rounded-2xl bg-white/50 dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto border border-amber-500/20">
+                    <Star size={24} className="fill-amber-400 text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-slate-900 dark:text-white">No Student Reviews Yet</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                      Have you lived here or visited this property? Be the first student to rate the food, safety, and amenities!
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsReviewModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer"
+                  >
+                    <Star size={14} className="fill-white" />
+                    <span>Write First Review</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3.5">
+                  {reviews.map((rev) => {
+                    const helpfulCount = (helpfulCounts[rev.id] ?? rev.helpfulCount ?? 0);
+                    const isVoted = votedHelpful[rev.id];
+
+                    return (
+                      <div 
+                        key={rev.id} 
+                        className="p-4 sm:p-5 rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-3 transition hover:border-slate-300 dark:hover:border-slate-700"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
+                              {rev.authorName ? rev.authorName[0].toUpperCase() : 'S'}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-bold text-sm text-slate-900 dark:text-white">
+                                  {rev.authorName}
+                                </span>
+                                {rev.verifiedStay && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
+                                    <CheckCircle2 size={11} /> Verified Stay
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-500 dark:text-slate-400">
+                                {rev.course ? `${rev.course} • ` : ''}{rev.college}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 self-start sm:self-auto">
+                            <div className="flex items-center gap-0.5">
+                              {[1, 2, 3, 4, 5].map((s) => (
+                                <Star 
+                                  key={s} 
+                                  size={13} 
+                                  className={s <= Math.round(rev.rating) ? 'fill-amber-400 text-amber-400' : 'text-slate-300 dark:text-slate-700'} 
+                                />
+                              ))}
+                            </div>
+                            <span className="text-[11px] text-slate-400 ml-1">{rev.date}</span>
+                          </div>
+                        </div>
+
+                        <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed italic bg-slate-50/50 dark:bg-slate-950/30 p-3 rounded-xl border border-slate-100 dark:border-slate-800/60">
+                          &quot;{rev.comment}&quot;
+                        </p>
+
+                        <div className="flex items-center justify-end">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleHelpful(rev.id, rev.helpfulCount || 0)}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+                              isVoted
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold'
+                                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                          >
+                            <ThumbsUp size={12} className={isVoted ? 'fill-emerald-500' : ''} />
+                            <span>Helpful {helpfulCount > 0 ? `(${helpfulCount})` : ''}</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
           </div>
 
@@ -610,6 +734,14 @@ export function PropertyDetailsView({ property }: { property: Property }) {
         isOpen={isEnquiryModalOpen}
         onClose={() => setIsEnquiryModalOpen(false)}
         selectedRoomType={selectedRoomForEnquiry}
+      />
+
+      {/* Student Review & Rating Modal */}
+      <ReviewModal
+        property={property}
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        onReviewSubmitted={handleReviewSubmitted}
       />
 
     </div>

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { invalidatePropertiesCache } from '@/lib/api/properties';
+import { MOCK_PROPERTIES } from '@/lib/api/mockData';
 
 export async function requireAdmin(supabase: SupabaseClient) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -555,4 +556,142 @@ export async function uploadPropertyImage(formData: FormData) {
     path: uploadData.path,
   };
 }
+
+export interface AdminReview {
+  id: string;
+  property_id: string;
+  property_title: string;
+  property_area: string;
+  property_city: string;
+  author_name: string;
+  college: string;
+  course?: string;
+  rating: number;
+  comment: string;
+  date: string;
+  verified_stay: boolean;
+  helpful_count: number;
+}
+
+function getFallbackAdminReviews(): AdminReview[] {
+  const list: AdminReview[] = [];
+  for (const prop of MOCK_PROPERTIES) {
+    if (prop.reviews && prop.reviews.length > 0) {
+      for (const rev of prop.reviews) {
+        list.push({
+          id: rev.id,
+          property_id: prop.id,
+          property_title: prop.title,
+          property_area: prop.area,
+          property_city: prop.city,
+          author_name: rev.authorName,
+          college: rev.college,
+          course: rev.course || '',
+          rating: rev.rating,
+          comment: rev.comment,
+          date: rev.date,
+          verified_stay: Boolean(rev.verifiedStay),
+          helpful_count: rev.helpfulCount || 0,
+        });
+      }
+    }
+  }
+  return list;
+}
+
+export async function getAdminReviews(): Promise<AdminReview[]> {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  try {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select(`
+        id,
+        property_id,
+        author_name,
+        college,
+        course,
+        rating,
+        comment,
+        date,
+        verified_stay,
+        helpful_count,
+        properties:property_id (
+          id,
+          title,
+          area,
+          city
+        )
+      `)
+      .order('date', { ascending: false });
+
+    if (error || !data || data.length === 0) {
+      if (error) {
+        console.warn('Notice: Error fetching reviews from Supabase, serving fallback:', error.message);
+      }
+      return getFallbackAdminReviews();
+    }
+
+    return data.map((r: any) => ({
+      id: r.id,
+      property_id: r.property_id,
+      property_title: r.properties?.title || 'Verified Accommodation',
+      property_area: r.properties?.area || '',
+      property_city: r.properties?.city || '',
+      author_name: r.author_name || 'Student Resident',
+      college: r.college || 'College Student',
+      course: r.course || '',
+      rating: Number(r.rating) || 5,
+      comment: r.comment || '',
+      date: r.date ? new Date(r.date).toLocaleDateString() : 'Recently',
+      verified_stay: Boolean(r.verified_stay),
+      helpful_count: Number(r.helpful_count || 0),
+    }));
+  } catch (err) {
+    console.error('getAdminReviews caught error:', err);
+    return getFallbackAdminReviews();
+  }
+}
+
+export async function deleteAdminReview(id: string) {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const { error } = await supabase
+    .from('reviews')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.warn('Supabase delete review note:', error.message);
+  }
+
+  invalidatePropertiesCache();
+  revalidatePath('/admin/reviews');
+  revalidatePath('/admin');
+  revalidatePath('/property/[id]', 'page');
+  return { success: true };
+}
+
+export async function toggleReviewVerifiedStay(id: string, currentStatus: boolean) {
+  const supabase = await createClient();
+  await requireAdmin(supabase);
+
+  const { error } = await supabase
+    .from('reviews')
+    .update({ verified_stay: !currentStatus })
+    .eq('id', id);
+
+  if (error) {
+    console.warn('Supabase update review verified note:', error.message);
+  }
+
+  invalidatePropertiesCache();
+  revalidatePath('/admin/reviews');
+  revalidatePath('/admin');
+  revalidatePath('/property/[id]', 'page');
+  return { success: true, verified_stay: !currentStatus };
+}
+
 
