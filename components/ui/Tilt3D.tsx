@@ -5,7 +5,7 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 interface Tilt3DProps {
   children: React.ReactNode;
   className?: string;
-  maxTilt?: number; // Maximum tilt angle in degrees, default 10
+  maxTilt?: number; // Maximum tilt angle in degrees, default 8
   scale?: number; // Scale factor on hover, default 1.02
   enableGlare?: boolean; // Show specular reflection
 }
@@ -18,6 +18,8 @@ export function Tilt3D({
   enableGlare = true,
 }: Tilt3DProps) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number | null>(null);
+
   const [transformStyle, setTransformStyle] = useState<string>('');
   const [glareStyle, setGlareStyle] = useState<{ opacity: number; x: number; y: number }>({
     opacity: 0,
@@ -37,7 +39,10 @@ export function Tilt3D({
 
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, []);
 
   const handleMouseMove = useCallback(
@@ -47,21 +52,24 @@ export function Tilt3D({
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
 
-      const rotateX = -((y - centerY) / centerY) * maxTilt;
-      const rotateY = ((x - centerX) / centerX) * maxTilt;
+        const rotateX = -((y - centerY) / centerY) * maxTilt;
+        const rotateY = ((x - centerX) / centerX) * maxTilt;
 
-      setTransformStyle(
-        `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(${scale}, ${scale}, ${scale})`
-      );
+        setTransformStyle(
+          `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(${scale}, ${scale}, ${scale})`
+        );
 
-      if (enableGlare) {
-        const glareX = (x / rect.width) * 100;
-        const glareY = (y / rect.height) * 100;
-        setGlareStyle({ opacity: 1, x: glareX, y: glareY });
-      }
+        if (enableGlare) {
+          const glareX = (x / rect.width) * 100;
+          const glareY = (y / rect.height) * 100;
+          setGlareStyle({ opacity: 1, x: glareX, y: glareY });
+        }
+      });
     },
     [isTouchOrMobile, maxTilt, scale, enableGlare]
   );
@@ -73,6 +81,7 @@ export function Tilt3D({
 
   const handleMouseLeave = () => {
     if (isTouchOrMobile) return;
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
     setIsHovered(false);
     setTransformStyle('perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)');
     setGlareStyle((prev) => ({ ...prev, opacity: 0 }));
@@ -92,8 +101,8 @@ export function Tilt3D({
       style={{
         transform: transformStyle,
         transition: isHovered
-          ? 'transform 0.1s ease-out'
-          : 'transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)',
+          ? 'transform 0.06s cubic-bezier(0.25, 1, 0.5, 1)'
+          : 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
         transformStyle: 'preserve-3d',
       }}
       className={`relative preserve-3d will-change-transform ${className}`}
