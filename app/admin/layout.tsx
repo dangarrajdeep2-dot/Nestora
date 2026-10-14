@@ -33,7 +33,7 @@ export default function AdminLayout({
               />
             </div>
             <div>
-              <span className="text-xl font-black text-white tracking-tight group-hover:text-emerald-400 transition-colors">
+              <span className="text-xl font-black bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-300 bg-clip-text text-transparent tracking-tight">
                 Nestora
               </span>
             </div>

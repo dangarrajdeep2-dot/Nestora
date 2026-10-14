@@ -43,7 +43,7 @@ export function Navbar() {
               />
             </div>
             <div>
-              <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight group-hover:text-emerald-500 transition-colors">
+              <span className="text-xl sm:text-2xl font-black bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-500 dark:from-emerald-400 dark:via-teal-300 dark:to-cyan-400 bg-clip-text text-transparent tracking-tight">
                 Nestora
               </span>
               <span className="hidden sm:block text-[10px] text-emerald-600 dark:text-emerald-400 font-bold tracking-wider uppercase -mt-1">
@@ -125,7 +125,7 @@ export function Navbar() {
             {/* Profile CTA */}
             <Link
               href="/profile"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-bold text-white bg-slate-900 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all active:scale-95 shadow-md shadow-emerald-500/10"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 transition-all active:scale-95 shadow-md shadow-emerald-500/25"
             >
               <User size={14} />
               <span>Profile</span>

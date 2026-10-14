@@ -21,7 +21,7 @@ export function Footer() {
                   className="w-full h-full object-contain"
                 />
               </div>
-              <span className="text-xl font-black text-white tracking-tight">Nestora</span>
+              <span className="text-xl font-black bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-300 bg-clip-text text-transparent tracking-tight">Nestora</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
               Find verified PGs, hostels, and student rooms near your college or any searched locality. Zero brokerage, transparent rent, and verified owner connections.

@@ -1,11 +1,23 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Plus_Jakarta_Sans, Outfit } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { ThemeProvider } from '@/lib/utils/theme';
 
-const inter = Inter({ subsets: ['latin'] });
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  weight: ['500', '600', '700', '800', '900'],
+  variable: '--font-heading',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Nestora — Find Your Perfect Stay Near Your College',
@@ -48,7 +60,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.className} min-h-screen flex flex-col bg-slate-50/70 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 antialiased selection:bg-emerald-500/20 selection:text-emerald-700 dark:selection:text-emerald-300`}>
+      <body className={`${plusJakarta.variable} ${outfit.variable} font-sans min-h-screen flex flex-col bg-slate-50/80 text-slate-900 dark:bg-[#090d16] dark:text-slate-100 transition-colors duration-300 antialiased selection:bg-emerald-500/25 selection:text-emerald-800 dark:selection:text-emerald-300`}>
         <ThemeProvider>
           <Navbar />
           <div className="flex-1">

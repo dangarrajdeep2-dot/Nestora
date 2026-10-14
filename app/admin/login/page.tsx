@@ -31,7 +31,7 @@ export default function AdminLogin() {
                 priority
               />
             </div>
-            <span className="text-2xl font-black text-white tracking-tight">Nestora</span>
+            <span className="text-2xl font-black bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-300 bg-clip-text text-transparent tracking-tight">Nestora</span>
           </div>
 
           <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-400 font-bold uppercase tracking-wider">

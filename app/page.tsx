@@ -52,7 +52,7 @@ export default async function HomePage() {
 
               {/* Main Heading (Requirement #2) */}
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-950 dark:text-white tracking-tight leading-[1.12] mb-4">
-                Find your perfect stay <span className="text-emerald-600 dark:text-emerald-400">near your college</span>
+                Find your perfect stay <span className="gradient-text-emerald">near your college</span>
               </h1>
 
               {/* Subheading */}
