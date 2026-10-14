@@ -15,7 +15,6 @@ import {
 import { Property } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { useSavedProperties } from '@/lib/utils/favorites';
-import { Tilt3D } from '@/components/ui/Tilt3D';
 
 interface PropertyCardProps {
   property: Property;
@@ -38,7 +37,7 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
 
   const cardContent = (
     <div 
-      className={`group glass-card hover:border-emerald-500/50 dark:hover:border-emerald-500/60 rounded-3xl transition-all duration-300 flex flex-col overflow-hidden relative md:preserve-3d h-full ${
+      className={`group glass-card hover:border-emerald-500/50 dark:hover:border-emerald-500/60 rounded-3xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-emerald-500/10 flex flex-col overflow-hidden relative h-full ${
         viewMode === 'list' ? 'sm:flex-row' : ''
       }`}
     >
@@ -60,7 +59,7 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
 
         {/* Top Badges */}
-        <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10 pointer-events-none md:translate-z-20">
+        <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
           <div className="flex items-center gap-1.5 flex-wrap pointer-events-auto">
             {/* Gender Badge */}
             <span 
@@ -100,7 +99,7 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
         </div>
 
         {/* Verified Badge Overlay at bottom of image */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-2 z-10 md:translate-z-20">
+        <div className="absolute bottom-3 left-3 flex items-center gap-2 z-10">
           {property.verified && (
             <span className="inline-flex items-center gap-1 bg-emerald-600/95 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md shadow-sm backdrop-blur-sm">
               <ShieldCheck size={13} className="shrink-0" />
@@ -192,13 +191,5 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
     </div>
   );
 
-  if (viewMode === 'list') {
-    return cardContent;
-  }
-
-  return (
-    <Tilt3D maxTilt={7} scale={1.018} enableGlare={true} className="h-full">
-      {cardContent}
-    </Tilt3D>
-  );
+  return cardContent;
 }
