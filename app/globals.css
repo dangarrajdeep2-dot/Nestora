@@ -8,11 +8,11 @@
   --foreground: #090f1d;
   --primary-emerald: #059669;
   --primary-mint: #10b981;
-  --primary-cyan: #06b6d4;
-  --accent-amber: #f59e0b;
-  --accent-violet: #8b5cf6;
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-heading: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  --primary-cyan: #0891b2;
+  --accent-amber: #d97706;
+  --accent-violet: #7c3aed;
+  --font-sans: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .dark {
@@ -33,17 +33,17 @@ body {
   transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.01em;
 }
 
 h1, h2, h3, h4, .font-heading {
   font-family: var(--font-heading), var(--font-sans), sans-serif;
-  letter-spacing: -0.028em;
+  letter-spacing: -0.02em;
 }
 
 /* Gradient Text Utilities */
 .gradient-text-emerald {
-  background: linear-gradient(135deg, #059669 0%, #10b981 45%, #06b6d4 100%);
+  background: linear-gradient(135deg, #047857 0%, #059669 45%, #0891b2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
