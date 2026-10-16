@@ -266,11 +266,34 @@ async function fetchAllProperties(): Promise<Property[]> {
  */
 export async function getProperties(filters: FilterState = {}): Promise<PropertySearchResponse> {
   let results = await fetchAllProperties();
+  const activeColleges = await getColleges();
 
-  const searchLat = filters.lat;
-  const searchLng = filters.lng;
+  let searchLat = filters.lat;
+  let searchLng = filters.lng;
+  let matchedCollege: College | undefined = undefined;
 
-  // Compute dynamic distance if user searched a location or provided GPS coordinates
+  // Detect if search query matches any college name or shortcode
+  if (filters.query && filters.query.trim()) {
+    const qLower = filters.query.toLowerCase().trim();
+    matchedCollege = activeColleges.find((col) => {
+      const colName = col.name.toLowerCase();
+      const short = col.shortName ? col.shortName.toLowerCase() : '';
+      return (
+        colName === qLower ||
+        colName.includes(qLower) ||
+        qLower.includes(colName) ||
+        (short && (short === qLower || qLower.includes(short)))
+      );
+    });
+
+    // Auto-assign college GPS coordinates if not explicitly passed
+    if (matchedCollege && (!searchLat || !searchLng)) {
+      searchLat = matchedCollege.latitude;
+      searchLng = matchedCollege.longitude;
+    }
+  }
+
+  // Compute dynamic distance if user searched a location, college, or provided GPS coordinates
   results = results.map((prop) => {
     let distanceKm: number | undefined = undefined;
     if (searchLat && searchLng) {
@@ -288,16 +311,34 @@ export async function getProperties(filters: FilterState = {}): Promise<Property
   // 1. Text search query (Colleges, Areas, Localities, Names)
   if (filters.query && filters.query.trim()) {
     const q = filters.query.toLowerCase().trim();
-    results = results.filter((prop) => {
-      return (
-        prop.title.toLowerCase().includes(q) ||
-        prop.area.toLowerCase().includes(q) ||
-        prop.address.toLowerCase().includes(q) ||
-        prop.city.toLowerCase().includes(q) ||
-        (prop.nearbyCollegeName && prop.nearbyCollegeName.toLowerCase().includes(q)) ||
-        prop.amenities.some((a: any) => a.toLowerCase().includes(q))
-      );
-    });
+    if (matchedCollege) {
+      // College-first search: include hostels near this college or in the same city sorted by proximity
+      results = results.filter((prop) => {
+        const directCollegeMatch = prop.nearbyCollegeName && (
+          prop.nearbyCollegeName.toLowerCase().includes(matchedCollege!.name.toLowerCase()) ||
+          matchedCollege!.name.toLowerCase().includes(prop.nearbyCollegeName.toLowerCase())
+        );
+        const textMatch = 
+          prop.title.toLowerCase().includes(q) ||
+          prop.area.toLowerCase().includes(q) ||
+          prop.address.toLowerCase().includes(q) ||
+          prop.city.toLowerCase().includes(q);
+        const sameCity = prop.city.toLowerCase() === matchedCollege!.city.toLowerCase();
+
+        return directCollegeMatch || textMatch || (sameCity && (prop.distanceKm ?? 999) <= 30);
+      });
+    } else {
+      results = results.filter((prop) => {
+        return (
+          prop.title.toLowerCase().includes(q) ||
+          prop.area.toLowerCase().includes(q) ||
+          prop.address.toLowerCase().includes(q) ||
+          prop.city.toLowerCase().includes(q) ||
+          (prop.nearbyCollegeName && prop.nearbyCollegeName.toLowerCase().includes(q)) ||
+          prop.amenities.some((a: any) => a.toLowerCase().includes(q))
+        );
+      });
+    }
   }
 
   // 2. Gender filter
@@ -361,13 +402,18 @@ export async function getProperties(filters: FilterState = {}): Promise<Property
     results = results.filter((prop) => prop.verified);
   }
 
-  // 11. Sorting
-  const sortBy = filters.sortBy || 'relevance';
+  // 11. Sorting: If college or GPS location is active, default to distance: nearest first!
+  const isCollegeOrGpsSearch = Boolean(matchedCollege || (filters.lat && filters.lng));
+  const sortBy = filters.sortBy || (isCollegeOrGpsSearch ? 'distance' : 'relevance');
+
   results.sort((a: any, b: any) => {
-    if (sortBy === 'distance') {
+    if (sortBy === 'distance' || (isCollegeOrGpsSearch && sortBy === 'relevance')) {
       const distA = a.distanceKm ?? 999;
       const distB = b.distanceKm ?? 999;
-      return distA - distB;
+      if (Math.abs(distA - distB) > 0.05) {
+        return distA - distB;
+      }
+      return (b.rating || 0) - (a.rating || 0);
     }
     if (sortBy === 'price_low_high') {
       return a.startingRent - b.startingRent;
@@ -386,7 +432,7 @@ export async function getProperties(filters: FilterState = {}): Promise<Property
     properties: results,
     total: results.length,
     searchedLocation: {
-      name: filters.locationName || filters.query || 'Selected Area',
+      name: matchedCollege ? matchedCollege.name : (filters.locationName || filters.query || 'Selected Area'),
       latitude: searchLat,
       longitude: searchLng,
     },
@@ -441,20 +487,25 @@ export async function searchLocations(query: string): Promise<LocationRef[]> {
   const activeColleges = await getColleges();
 
   if (!query || !query.trim()) {
-    return POPULAR_LOCATIONS.slice(0, 5);
+    // Show all colleges prominently first, then top student localities
+    const collegeRefs: LocationRef[] = activeColleges.map((col) => ({
+      id: `col-${col.id}`,
+      name: col.name,
+      area: col.area,
+      city: col.city,
+      latitude: col.latitude,
+      longitude: col.longitude,
+      type: 'college',
+      subtitle: `🎓 College / Campus in ${col.city} (${col.area})`,
+    }));
+    return [...collegeRefs, ...POPULAR_LOCATIONS.slice(0, 4)];
   }
   const q = query.toLowerCase().trim();
-
-  const matchedLocations = POPULAR_LOCATIONS.filter(
-    (loc) =>
-      loc.name.toLowerCase().includes(q) ||
-      loc.area.toLowerCase().includes(q) ||
-      loc.city.toLowerCase().includes(q)
-  );
 
   const matchedColleges = activeColleges.filter(
     (col) =>
       col.name.toLowerCase().includes(q) ||
+      (col.shortName && col.shortName.toLowerCase().includes(q)) ||
       col.city.toLowerCase().includes(q) ||
       col.area.toLowerCase().includes(q)
   ).map((col) => ({
@@ -465,10 +516,18 @@ export async function searchLocations(query: string): Promise<LocationRef[]> {
     latitude: col.latitude,
     longitude: col.longitude,
     type: 'college' as const,
-    subtitle: `College location reference in ${col.city}`,
+    subtitle: `🎓 College / Campus in ${col.city} (${col.area})`,
   }));
 
-  const combined = [...matchedLocations, ...matchedColleges];
+  const matchedLocations = POPULAR_LOCATIONS.filter(
+    (loc) =>
+      loc.name.toLowerCase().includes(q) ||
+      loc.area.toLowerCase().includes(q) ||
+      loc.city.toLowerCase().includes(q)
+  );
+
+  // Colleges first, then general localities
+  const combined = [...matchedColleges, ...matchedLocations];
   // Deduplicate by name
   const seen = new Set<string>();
   return combined.filter((item) => {
