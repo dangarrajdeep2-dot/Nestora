@@ -114,6 +114,23 @@ function mergeLocalReviews(properties: Property[]): Property[] {
   }
 }
 
+function getCityCoordinates(city?: string): { lat: number; lng: number } {
+  const c = (city || '').toLowerCase();
+  if (c.includes('vadodara') || c.includes('baroda')) return { lat: 22.3072, lng: 73.1812 };
+  if (c.includes('ahmedabad')) return { lat: 23.0225, lng: 72.5714 };
+  if (c.includes('pune')) return { lat: 18.5204, lng: 73.8567 };
+  return { lat: 22.2905, lng: 70.7818 };
+}
+
+function normalizeSearchText(str?: string | null): string {
+  return (str || '')
+    .toLowerCase()
+    .replace(/[,.\-_]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/v/g, 'w') // e.g. marvadi -> marwadi
+    .trim();
+}
+
 async function fetchAllProperties(): Promise<Property[]> {
   if (!isSupabaseConfigured) {
     return mergeLocalReviews(MOCK_PROPERTIES);
@@ -215,6 +232,14 @@ async function fetchAllProperties(): Promise<Property[]> {
         'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1000&q=80',
       ];
 
+      const cityFallback = getCityCoordinates(row.city);
+      const propLat = row.latitude != null && !isNaN(Number(row.latitude)) && Number(row.latitude) !== 0
+        ? Number(row.latitude)
+        : cityFallback.lat;
+      const propLng = row.longitude != null && !isNaN(Number(row.longitude)) && Number(row.longitude) !== 0
+        ? Number(row.longitude)
+        : cityFallback.lng;
+
       return {
         id: row.id,
         title: row.title,
@@ -225,8 +250,8 @@ async function fetchAllProperties(): Promise<Property[]> {
         address: row.address,
         area: row.area,
         city: row.city,
-        latitude: Number(row.latitude),
-        longitude: Number(row.longitude),
+        latitude: propLat,
+        longitude: propLng,
         googleMapUrl: row.source_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${row.title || ''}, ${row.area || ''}, ${row.city || ''}`)}`,
         nearbyCollegeId: row.nearby_college_id,
         nearbyCollegeName: row.colleges?.name,
@@ -272,17 +297,17 @@ export async function getProperties(filters: FilterState = {}): Promise<Property
   let searchLng = filters.lng;
   let matchedCollege: College | undefined = undefined;
 
-  // Detect if search query matches any college name or shortcode
+  // Detect if search query matches any college name or shortcode (with spelling normalization, e.g. marvadi -> marwadi)
   if (filters.query && filters.query.trim()) {
-    const qLower = filters.query.toLowerCase().trim();
+    const qNorm = normalizeSearchText(filters.query);
     matchedCollege = activeColleges.find((col) => {
-      const colName = col.name.toLowerCase();
-      const short = col.shortName ? col.shortName.toLowerCase() : '';
+      const nameNorm = normalizeSearchText(col.name);
+      const shortNorm = col.shortName ? normalizeSearchText(col.shortName) : '';
       return (
-        colName === qLower ||
-        colName.includes(qLower) ||
-        qLower.includes(colName) ||
-        (short && (short === qLower || qLower.includes(short)))
+        nameNorm === qNorm ||
+        nameNorm.includes(qNorm) ||
+        qNorm.includes(nameNorm) ||
+        (shortNorm && (shortNorm === qNorm || qNorm.includes(shortNorm)))
       );
     });
 
@@ -312,20 +337,17 @@ export async function getProperties(filters: FilterState = {}): Promise<Property
   if (filters.query && filters.query.trim()) {
     const q = filters.query.toLowerCase().trim();
     if (matchedCollege) {
-      // College-first search: include hostels near this college or in the same city sorted by proximity
+      // College-first search:
+      // CRITICAL: Filter properties to the same city as the college (or directly linked to the college)
+      // For instance, Marwadi University (Rajkot) must NEVER show properties in Vadodara or Ahmedabad!
       results = results.filter((prop) => {
+        const sameCity = prop.city && prop.city.toLowerCase() === matchedCollege!.city.toLowerCase();
         const directCollegeMatch = prop.nearbyCollegeName && (
-          prop.nearbyCollegeName.toLowerCase().includes(matchedCollege!.name.toLowerCase()) ||
-          matchedCollege!.name.toLowerCase().includes(prop.nearbyCollegeName.toLowerCase())
+          normalizeSearchText(prop.nearbyCollegeName).includes(normalizeSearchText(matchedCollege!.name)) ||
+          normalizeSearchText(matchedCollege!.name).includes(normalizeSearchText(prop.nearbyCollegeName))
         );
-        const textMatch = 
-          prop.title.toLowerCase().includes(q) ||
-          prop.area.toLowerCase().includes(q) ||
-          prop.address.toLowerCase().includes(q) ||
-          prop.city.toLowerCase().includes(q);
-        const sameCity = prop.city.toLowerCase() === matchedCollege!.city.toLowerCase();
 
-        return directCollegeMatch || textMatch || (sameCity && (prop.distanceKm ?? 999) <= 30);
+        return sameCity || directCollegeMatch;
       });
     } else {
       results = results.filter((prop) => {
@@ -501,13 +523,14 @@ export async function searchLocations(query: string): Promise<LocationRef[]> {
     return [...collegeRefs, ...POPULAR_LOCATIONS.slice(0, 4)];
   }
   const q = query.toLowerCase().trim();
+  const qNorm = normalizeSearchText(query);
 
   const matchedColleges = activeColleges.filter(
     (col) =>
-      col.name.toLowerCase().includes(q) ||
-      (col.shortName && col.shortName.toLowerCase().includes(q)) ||
-      col.city.toLowerCase().includes(q) ||
-      col.area.toLowerCase().includes(q)
+      normalizeSearchText(col.name).includes(qNorm) ||
+      (col.shortName && normalizeSearchText(col.shortName).includes(qNorm)) ||
+      normalizeSearchText(col.city).includes(qNorm) ||
+      normalizeSearchText(col.area).includes(qNorm)
   ).map((col) => ({
     id: `col-${col.id}`,
     name: col.name,

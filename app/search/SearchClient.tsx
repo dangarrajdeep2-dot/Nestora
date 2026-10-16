@@ -278,8 +278,9 @@ export function SearchClient() {
                 <button
                   type="button"
                   onClick={() => {
-                    setFilters((prev) => ({ ...prev, query: '', lat: undefined, lng: undefined }));
+                    setFilters((prev) => ({ ...prev, query: '', lat: undefined, lng: undefined, sortBy: 'relevance' }));
                     setShowSuggestions(false);
+                    router.replace('/search');
                   }}
                   className="absolute right-24 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                 >
@@ -467,6 +468,39 @@ export function SearchClient() {
         </div>
       </div>
 
+      {/* Active College / Search Distance Notice Banner */}
+      {filters.query && (
+        <div className="bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 rounded-2xl p-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <GraduationCap size={22} />
+            </div>
+            <div>
+              <div className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+                <span>Stays near &quot;{filters.query}&quot;</span>
+                <span className="text-[10px] font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full shadow-sm">
+                  📍 Nearest First
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                Sabhi PGs aur hostels &quot;{filters.query}&quot; se distance ke hisab se sorted hain (sabse kam doori wale pehle).
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setFilters((prev) => ({ ...prev, query: '', lat: undefined, lng: undefined, sortBy: 'relevance' }));
+              setShowSuggestions(false);
+              router.replace('/search');
+            }}
+            className="text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 px-3.5 py-2 rounded-xl transition self-start sm:self-auto cursor-pointer"
+          >
+            Clear Filter (Show All Stays)
+          </button>
+        </div>
+      )}
+
       {/* Active Filter Badges Row */}
       {activeFilterCount > 0 && (
         <div className="flex items-center gap-2 mb-6 flex-wrap">
@@ -565,7 +599,12 @@ export function SearchClient() {
               }`}
             >
               {properties.map((prop) => (
-                <PropertyCard key={prop.id} property={prop} viewMode={viewMode} />
+                <PropertyCard 
+                  key={prop.id} 
+                  property={prop} 
+                  viewMode={viewMode} 
+                  referenceLocation={filters.query} 
+                />
               ))}
             </div>
           )}

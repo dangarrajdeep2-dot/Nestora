@@ -10,7 +10,8 @@ import {
   Navigation, 
   Heart, 
   ArrowRight,
-  Sparkles
+  Sparkles,
+  GraduationCap
 } from 'lucide-react';
 import { Property } from '@/types';
 import { formatCurrency } from '@/lib/utils';
@@ -19,9 +20,10 @@ import { useSavedProperties } from '@/lib/utils/favorites';
 interface PropertyCardProps {
   property: Property;
   viewMode?: 'grid' | 'list';
+  referenceLocation?: string;
 }
 
-export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps) {
+export function PropertyCard({ property, viewMode = 'grid', referenceLocation }: PropertyCardProps) {
   const { isSaved, toggle } = useSavedProperties();
   const saved = isSaved(property.id);
 
@@ -136,6 +138,14 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
               </span>
             )}
           </div>
+
+          {/* Prominent distance from searched college/location */}
+          {referenceLocation && property.distanceKm !== undefined && (
+            <div className="mb-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/25 text-[11px] font-bold text-emerald-800 dark:text-emerald-300 w-fit">
+              <GraduationCap size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>{referenceLocation} se <strong className="text-emerald-700 dark:text-emerald-300">{property.distanceKm.toFixed(1)} km door</strong></span>
+            </div>
+          )}
 
           {/* Property Name */}
           <Link href={`/property/${property.id}`} className="group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">

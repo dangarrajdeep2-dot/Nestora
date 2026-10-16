@@ -858,15 +858,15 @@ export default function PropertyForm({
             />
           </div>
 
-          {/* Google Maps Link or Embed Code with Auto GPS extraction */}
+          {/* Google Maps Location Link with Auto-generate & GPS extraction */}
           <div className="bg-slate-950/80 border border-emerald-500/30 rounded-2xl p-4 space-y-2">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <label className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
                 <MapPin size={14} className="text-emerald-400 shrink-0" />
-                Google Maps Link or Embed Code (Recommended)
+                Google Maps Link (Recommended)
               </label>
               <span className="text-[10px] text-emerald-300 font-semibold bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full w-fit">
-                Auto-fills Coordinates
+                Direct Location Link
               </span>
             </div>
 
@@ -874,12 +874,12 @@ export default function PropertyForm({
               type="text"
               value={googleMapUrl}
               onChange={(e) => handleGoogleMapUrlChange(e.target.value)}
-              placeholder="Paste Google Maps Share Link, Place URL, or <iframe> Embed Code..."
+              placeholder="Paste Google Maps link (e.g. https://maps.app.goo.gl/... or https://maps.google.com/...)"
               className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
             />
 
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              💡 <strong>Tip:</strong> Google Maps me hostel search karke <strong>Share ➔ Embed a map (Copy HTML)</strong> ya <strong>Copy Link</strong> karke yahan paste karein, ya neeche diye gaye button se automatically hostel ke name se link banayein!
+              💡 <strong>Tip:</strong> Google Maps me hostel search karke <strong>Share ➔ Copy Link</strong> karke yahan paste karein, ya direct neeche diye gaye button se automatically hostel ke name se Google Map link banayein!
             </p>
 
             <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -913,7 +913,7 @@ export default function PropertyForm({
             {googleMapUrl && (
               <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
                 <Check size={14} className="shrink-0" />
-                <span>Google Map link successfully linked!</span>
+                <span>Google Maps link successfully connected!</span>
               </div>
             )}
           </div>
