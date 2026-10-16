@@ -48,6 +48,7 @@ export function SearchClient() {
     sortBy: initialSortBy,
   });
 
+  const [searchInput, setSearchInput] = useState(initialQuery);
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -69,15 +70,24 @@ export function SearchClient() {
     const lng = searchParams.get('lng') ? parseFloat(searchParams.get('lng')!) : undefined;
     const gender = (searchParams.get('gender') as 'boys' | 'girls' | 'all') || 'all';
 
-    Promise.resolve().then(() => {
-      setFilters((prev) => ({
+    setFilters((prev) => {
+      if (
+        prev.query === q &&
+        prev.lat === lat &&
+        prev.lng === lng &&
+        prev.gender === gender
+      ) {
+        return prev;
+      }
+      return {
         ...prev,
         query: q,
         lat,
         lng,
         gender,
-      }));
+      };
     });
+    setSearchInput(q);
   }, [searchParams]);
 
   // Fetch properties when filters change
@@ -95,28 +105,38 @@ export function SearchClient() {
   };
 
   useEffect(() => {
-    Promise.resolve().then(() => {
-      fetchListingData();
-    });
+    fetchListingData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
-    // Debounced search for suggestions (colleges shown first)
-    useEffect(() => {
-      let active = true;
-      const timer = setTimeout(async () => {
-        try {
-          const results = await searchLocations(filters.query || '');
-          if (active) setSuggestions(results);
-        } catch {
-          // ignore
-        }
-      }, 150);
-      return () => {
-        active = false;
-        clearTimeout(timer);
-      };
-    }, [filters.query]);
+  // Debounced update from searchInput to filters.query so typing never freezes the UI
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters((prev) => {
+        if (prev.query === searchInput) return prev;
+        return {
+          ...prev,
+          query: searchInput,
+          lat: searchInput === '' ? undefined : prev.lat,
+          lng: searchInput === '' ? undefined : prev.lng,
+        };
+      });
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Instant autocomplete lookup using cached colleges
+  useEffect(() => {
+    let active = true;
+    searchLocations(searchInput).then((results) => {
+      if (active) setSuggestions(results);
+    }).catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [searchInput]);
 
     // Click outside listener for dropdown
     useEffect(() => {
@@ -131,6 +151,7 @@ export function SearchClient() {
 
     const handleSelectSuggestion = (loc: LocationRef) => {
       setShowSuggestions(false);
+      setSearchInput(loc.name);
       setFilters((prev) => ({
         ...prev,
         query: loc.name,
@@ -153,7 +174,7 @@ export function SearchClient() {
     const handleSearchKeyDown = async (e: React.KeyboardEvent) => {
       if (e.key === 'Enter') {
         setShowSuggestions(false);
-        const trimmed = (filters.query || '').trim();
+        const trimmed = searchInput.trim();
         if (!trimmed) return;
 
         const results = await searchLocations(trimmed);
@@ -165,6 +186,7 @@ export function SearchClient() {
         );
 
         if (match && match.latitude && match.longitude) {
+          setSearchInput(match.name);
           setFilters((prev) => ({
             ...prev,
             query: match.name,
@@ -180,7 +202,12 @@ export function SearchClient() {
           if (filters.gender && filters.gender !== 'all') params.set('gender', filters.gender);
           router.replace(`/search?${params.toString()}`);
         } else {
-          setFilters((prev) => ({ ...prev, sortBy: 'distance' }));
+          setFilters((prev) => ({ ...prev, query: trimmed, sortBy: 'distance' }));
+          const params = new URLSearchParams();
+          params.set('q', trimmed);
+          params.set('sortBy', 'distance');
+          if (filters.gender && filters.gender !== 'all') params.set('gender', filters.gender);
+          router.replace(`/search?${params.toString()}`);
         }
       }
     };
@@ -194,16 +221,18 @@ export function SearchClient() {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           setIsDetectingLocation(false);
+          const locName = 'Near My Location';
+          setSearchInput(locName);
           setFilters((prev) => ({
             ...prev,
-            query: 'Near My Location',
+            query: locName,
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
             sortBy: 'distance',
           }));
           setShowLocationDeniedBanner(false);
           const params = new URLSearchParams();
-          params.set('q', 'Near My Location');
+          params.set('q', locName);
           params.set('lat', pos.coords.latitude.toString());
           params.set('lng', pos.coords.longitude.toString());
           params.set('sortBy', 'distance');
@@ -219,6 +248,7 @@ export function SearchClient() {
     };
 
     const handleResetFilters = () => {
+      setSearchInput('');
       setFilters({
         query: '',
         lat: undefined,
@@ -236,6 +266,7 @@ export function SearchClient() {
         sortBy: 'relevance',
       });
       setShowSuggestions(false);
+      router.replace('/search');
     };
 
     // Determine active filter count for badge
@@ -264,9 +295,9 @@ export function SearchClient() {
               </div>
               <input
                 type="text"
-                value={filters.query || ''}
+                value={searchInput}
                 onChange={(e) => {
-                  setFilters((prev) => ({ ...prev, query: e.target.value }));
+                  setSearchInput(e.target.value);
                   setShowSuggestions(true);
                 }}
                 onFocus={() => setShowSuggestions(true)}
@@ -274,10 +305,11 @@ export function SearchClient() {
                 placeholder="Enter your college (e.g. Marwadi University, RK University, Saurashtra University...)"
                 className="w-full pl-10 pr-28 py-3 rounded-2xl bg-white/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 text-slate-900 dark:text-white text-sm outline-none transition"
               />
-              {filters.query && (
+              {searchInput && (
                 <button
                   type="button"
                   onClick={() => {
+                    setSearchInput('');
                     setFilters((prev) => ({ ...prev, query: '', lat: undefined, lng: undefined, sortBy: 'relevance' }));
                     setShowSuggestions(false);
                     router.replace('/search');

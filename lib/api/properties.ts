@@ -84,9 +84,14 @@ interface SupabasePropertyRow {
 let cachedProperties: Property[] | null = null;
 let lastFetch = 0;
 
+let cachedColleges: College[] = [...MOCK_COLLEGES];
+let isCollegesFetched = false;
+let isCollegesFetching = false;
+
 export function invalidatePropertiesCache(): void {
   cachedProperties = null;
   lastFetch = 0;
+  isCollegesFetched = false;
 }
 
 function mergeLocalReviews(properties: Property[]): Property[] {
@@ -141,7 +146,11 @@ async function fetchAllProperties(): Promise<Property[]> {
   }
 
   try {
-    const { data, error } = await supabase
+    const timeoutPromise = new Promise<{ data: any; error: any }>((resolve) =>
+      setTimeout(() => resolve({ data: null, error: { message: 'Timeout fetching from Supabase' } }), 2500)
+    );
+
+    const queryPromise = supabase
       .from('properties')
       .select(`
         *,
@@ -155,13 +164,17 @@ async function fetchAllProperties(): Promise<Property[]> {
         reviews(*)
       `);
 
+    const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
+
     if (error) {
-      console.warn('⚠️ SHOWING MOCK DATA: Supabase query failed.', error.message);
-      return MOCK_PROPERTIES;
+      console.warn('⚠️ SHOWING MOCK/CACHED DATA: Supabase query failed or timed out.', error.message);
+      if (cachedProperties) return mergeLocalReviews(cachedProperties);
+      return mergeLocalReviews(MOCK_PROPERTIES);
     }
 
     if (!data || data.length === 0) {
       console.warn('⚠️ SHOWING MOCK DATA: Supabase returned no properties.');
+      if (cachedProperties) return mergeLocalReviews(cachedProperties);
       return MOCK_PROPERTIES;
     }
 
@@ -477,29 +490,37 @@ export async function getPopularLocations(): Promise<LocationRef[]> {
 }
 
 export async function getColleges(): Promise<College[]> {
-  if (!isSupabaseConfigured) return MOCK_COLLEGES;
-  
-  try {
-    const { data, error } = await supabase.from('colleges').select('*');
-    if (error || !data || data.length === 0) {
-      console.warn('⚠️ SHOWING MOCK DATA (Colleges):', error?.message || 'No records found.');
-      return MOCK_COLLEGES;
-    }
-    
-    return data.map(c => ({
-      id: c.id,
-      name: c.name,
-      city: c.city,
-      area: c.area,
-      latitude: Number(c.latitude),
-      longitude: Number(c.longitude),
-      shortName: c.short_name,
-      popularLandmark: c.popular_landmark
-    }));
-  } catch(e) {
-    console.error('Error fetching colleges:', e);
-    return MOCK_COLLEGES;
+  if (isSupabaseConfigured && !isCollegesFetched && !isCollegesFetching) {
+    isCollegesFetching = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase.from('colleges').select('*');
+        if (!error && data && data.length > 0) {
+          const dbColleges: College[] = data.map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            city: c.city,
+            area: c.area,
+            latitude: Number(c.latitude),
+            longitude: Number(c.longitude),
+            shortName: c.short_name,
+            popularLandmark: c.popular_landmark,
+          }));
+
+          const seen = new Set(dbColleges.map((c) => c.name.toLowerCase()));
+          const extraMocks = MOCK_COLLEGES.filter((c) => !seen.has(c.name.toLowerCase()));
+          cachedColleges = [...dbColleges, ...extraMocks];
+          isCollegesFetched = true;
+        }
+      } catch (err) {
+        console.warn('Background colleges fetch error:', err);
+      } finally {
+        isCollegesFetching = false;
+      }
+    })();
   }
+
+  return cachedColleges;
 }
 
 /**
