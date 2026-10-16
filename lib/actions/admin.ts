@@ -375,6 +375,7 @@ export async function updatePropertyDetails(id: string, data: Record<string, any
   if (propertyData.is_available_now !== undefined) cleanPropertyData.is_available_now = Boolean(propertyData.is_available_now);
   if (propertyData.notice_period_days !== undefined) cleanPropertyData.notice_period_days = propertyData.notice_period_days ? Math.round(Number(propertyData.notice_period_days)) : null;
   if (propertyData.gate_closing_time !== undefined) cleanPropertyData.gate_closing_time = propertyData.gate_closing_time?.trim() || null;
+  if (propertyData.source_url !== undefined) cleanPropertyData.source_url = propertyData.source_url?.trim() || null;
   if (resolvedOwnerId !== undefined) cleanPropertyData.owner_id = resolvedOwnerId;
 
   // 3. Update Parent Property

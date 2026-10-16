@@ -11,17 +11,17 @@ import {
   Layers, 
   Compass, 
   Footprints,
-  Share2
+  Maximize2
 } from 'lucide-react';
 import { Property } from '@/types';
 
-// Dynamically load PropertyMap to avoid SSR issues
+// Dynamically load PropertyMap to avoid SSR hydration issues
 const PropertyMap = dynamic(() => import('@/components/listings/PropertyMap'), {
   ssr: false,
   loading: () => (
     <div className="h-72 sm:h-80 w-full bg-slate-100 dark:bg-slate-900 animate-pulse rounded-2xl flex flex-col items-center justify-center text-slate-400 gap-2 border border-slate-200 dark:border-slate-800">
       <MapPin size={28} className="text-emerald-500 animate-bounce" />
-      <span className="text-xs font-semibold">Loading map view...</span>
+      <span className="text-xs font-semibold">Loading interactive map...</span>
     </div>
   ),
 });
@@ -31,18 +31,32 @@ interface GoogleMapLocationProps {
 }
 
 export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
-  const [activeTab, setActiveTab] = useState<'google' | 'leaflet'>('google');
+  const customMapUrl = property.googleMapUrl?.trim() || '';
+  
+  // Check if admin provided a dedicated Google Maps embed URL or iframe code
+  const isEmbedUrl = customMapUrl.includes('/maps/embed');
+  
+  // If admin provided a real embed link, default to Google tab. Otherwise default to interactive Area Map
+  const [activeTab, setActiveTab] = useState<'google' | 'leaflet'>(isEmbedUrl ? 'google' : 'leaflet');
   const [copied, setCopied] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  // Exact Google Maps Embed URL (No API key required, 100% free)
-  const embedUrl = `https://maps.google.com/maps?q=${property.latitude},${property.longitude}&hl=en&z=15&output=embed`;
+  // Construct embed URL:
+  // 1. If admin provided embed URL, use it directly
+  // 2. Otherwise use the standard search query embed URL
+  const embedUrl = isEmbedUrl 
+    ? customMapUrl
+    : `https://maps.google.com/maps?q=${encodeURIComponent(`${property.title}, ${property.address || property.area}, ${property.city}`)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
   // Direct Google Maps Navigation URL (Turn-by-turn directions)
-  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${property.latitude},${property.longitude}`;
+  const directionsUrl = customMapUrl && !isEmbedUrl && (customMapUrl.includes('goo.gl') || customMapUrl.includes('google.com/maps'))
+    ? customMapUrl
+    : `https://www.google.com/maps/dir/?api=1&destination=${property.latitude},${property.longitude}`;
 
   // Direct Google Maps Place Search URL
-  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${property.latitude},${property.longitude}`;
+  const googleMapsUrl = customMapUrl && !isEmbedUrl
+    ? customMapUrl
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${property.title}, ${property.address || property.area}, ${property.city}`)}`;
 
   // Walking route to nearby college if available
   const collegeRouteUrl = property.nearbyCollegeName
@@ -73,7 +87,7 @@ export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
               Location & Neighborhood
             </h2>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-              Live Google Map
+              Google Maps
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -85,19 +99,6 @@ export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
         <div className="inline-flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 self-start sm:self-auto">
           <button
             type="button"
-            onClick={() => setActiveTab('google')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'google'
-                ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Compass size={13} />
-            <span>Google Map</span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => setActiveTab('leaflet')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'leaflet'
@@ -106,7 +107,20 @@ export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
             }`}
           >
             <Layers size={13} />
-            <span>Area Map</span>
+            <span>Interactive Map</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('google')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              activeTab === 'google'
+                ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <Compass size={13} />
+            <span>Google Map {isEmbedUrl ? '✓' : ''}</span>
           </button>
         </div>
       </div>
@@ -122,15 +136,17 @@ export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
 
         <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
           {/* Coordinates Badge */}
-          <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 hidden md:inline">
-            {property.latitude.toFixed(4)}°, {property.longitude.toFixed(4)}°
-          </span>
+          {property.latitude && property.longitude ? (
+            <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 hidden md:inline">
+              {property.latitude.toFixed(4)}°, {property.longitude.toFixed(4)}°
+            </span>
+          ) : null}
 
           {/* Copy Address Button */}
           <button
             type="button"
             onClick={handleCopyAddress}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200/80 dark:border-slate-700 shadow-sm transition active:scale-95"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200/80 dark:border-slate-700 shadow-sm transition active:scale-95 cursor-pointer"
             title="Copy exact address"
           >
             {copied ? (
@@ -173,6 +189,17 @@ export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
               onLoad={() => setMapLoaded(true)}
               className="w-full h-full"
             />
+
+            {/* Quick External Launch Overlay in corner */}
+            <a
+              href={directionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute bottom-3 right-3 z-10 bg-white/95 dark:bg-slate-900/95 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 text-slate-800 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl shadow-md border border-slate-200/80 dark:border-slate-700 flex items-center gap-1.5 transition"
+            >
+              <Maximize2 size={12} />
+              <span>Full View ↗</span>
+            </a>
           </>
         ) : (
           <PropertyMap

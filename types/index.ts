@@ -117,6 +117,7 @@ export interface Property {
   reviews?: Review[];
   noticePeriodDays?: number;
   gateClosingTime?: string;
+  googleMapUrl?: string;
   createdAt: string;
   updatedAt?: string;
 }

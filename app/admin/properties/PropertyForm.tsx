@@ -163,8 +163,29 @@ export default function PropertyForm({
   const [address, setAddress] = useState(initialProperty?.address || '');
   const [nearbyCollegeId, setNearbyCollegeId] = useState<string>(initialProperty?.nearby_college_id || '');
   const [tagline, setTagline] = useState(initialProperty?.tagline || '');
+  const [googleMapUrl, setGoogleMapUrl] = useState<string>(initialProperty?.source_url || initialProperty?.googleMapUrl || '');
   const [latitude, setLatitude] = useState<string>(initialProperty?.latitude ? String(initialProperty.latitude) : '');
   const [longitude, setLongitude] = useState<string>(initialProperty?.longitude ? String(initialProperty.longitude) : '');
+
+  const handleGoogleMapUrlChange = (value: string) => {
+    let clean = value.trim();
+
+    // 1. If <iframe> embed code was pasted, extract the src URL
+    const iframeMatch = clean.match(/src=["'](https:\/\/[^"']+)["']/i);
+    if (iframeMatch) {
+      clean = iframeMatch[1];
+    }
+
+    setGoogleMapUrl(clean);
+
+    // 2. Try to auto-extract latitude and longitude from URL
+    const coordMatch = clean.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
+                       clean.match(/[?&](?:q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (coordMatch) {
+      setLatitude(coordMatch[1]);
+      setLongitude(coordMatch[2]);
+    }
+  };
 
   // 3. Pricing & Policies
   const [startingRent, setStartingRent] = useState<string>(
@@ -523,6 +544,7 @@ export default function PropertyForm({
       tagline: tagline.trim() || null,
       latitude: latitude ? Number(latitude) : null,
       longitude: longitude ? Number(longitude) : null,
+      source_url: googleMapUrl.trim() || null,
       starting_rent: numStartingRent,
       deposit: deposit ? Number(deposit) : numStartingRent,
       gate_closing_time: gateClosingTime.trim() || null,
@@ -834,6 +856,38 @@ export default function PropertyForm({
               placeholder="e.g. 500m from University Gate 2"
               className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
             />
+          </div>
+
+          {/* Google Maps Link or Embed Code with Auto GPS extraction */}
+          <div className="bg-slate-950/80 border border-emerald-500/30 rounded-2xl p-4 space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <label className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                <MapPin size={14} className="text-emerald-400 shrink-0" />
+                Google Maps Link or Embed Code (Recommended)
+              </label>
+              <span className="text-[10px] text-emerald-300 font-semibold bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full w-fit">
+                Auto-fills Coordinates
+              </span>
+            </div>
+
+            <input
+              type="text"
+              value={googleMapUrl}
+              onChange={(e) => handleGoogleMapUrlChange(e.target.value)}
+              placeholder="Paste Google Maps Share Link, Place URL, or <iframe> Embed Code..."
+              className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
+            />
+
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              💡 <strong>Tip:</strong> Google Maps me hostel search karke <strong>Share ➔ Embed a map (Copy HTML)</strong> ya <strong>Copy Link</strong> karke yahan paste karein. Latitude aur Longitude automatically calculate ho jayenge!
+            </p>
+
+            {googleMapUrl && (
+              <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
+                <Check size={14} className="shrink-0" />
+                <span>Google Map link successfully linked!</span>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-2">
