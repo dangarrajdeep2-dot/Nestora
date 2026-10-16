@@ -879,8 +879,36 @@ export default function PropertyForm({
             />
 
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              💡 <strong>Tip:</strong> Google Maps me hostel search karke <strong>Share ➔ Embed a map (Copy HTML)</strong> ya <strong>Copy Link</strong> karke yahan paste karein. Latitude aur Longitude automatically calculate ho jayenge!
+              💡 <strong>Tip:</strong> Google Maps me hostel search karke <strong>Share ➔ Embed a map (Copy HTML)</strong> ya <strong>Copy Link</strong> karke yahan paste karein, ya neeche diye gaye button se automatically hostel ke name se link banayein!
             </p>
+
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  const areaText = areaSelect === '__other__' ? customArea.trim() : areaSelect;
+                  const query = [title.trim(), areaText, city].filter(Boolean).join(', ');
+                  if (!query) return;
+                  const autoUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+                  setGoogleMapUrl(autoUrl);
+                }}
+                className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 font-semibold border border-emerald-500/30 transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <Sparkles size={13} className="text-emerald-400" />
+                <span>Auto-generate Link from Hostel Name ({title.trim() || 'Hostel'})</span>
+              </button>
+
+              {googleMapUrl && (
+                <a
+                  href={googleMapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium border border-slate-700 transition flex items-center gap-1"
+                >
+                  <span>Test Link on Google Maps ↗</span>
+                </a>
+              )}
+            </div>
 
             {googleMapUrl && (
               <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">

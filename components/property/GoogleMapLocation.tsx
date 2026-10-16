@@ -25,20 +25,25 @@ export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
   const [copied, setCopied] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
 
+  // Automatic Google Maps Search Query built from hostel title, area, and city
+  const hostelQuery = `${property.title}, ${property.area}, ${property.city}`;
+
   // Construct Google Map embed URL
   const embedUrl = isEmbedUrl 
     ? customMapUrl
-    : `https://maps.google.com/maps?q=${encodeURIComponent(`${property.title}, ${property.address || property.area}, ${property.city}`)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+    : `https://maps.google.com/maps?q=${encodeURIComponent(hostelQuery)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
   // Direct Google Maps Navigation URL (Turn-by-turn directions)
   const directionsUrl = customMapUrl && !isEmbedUrl && (customMapUrl.includes('goo.gl') || customMapUrl.includes('google.com/maps'))
     ? customMapUrl
-    : `https://www.google.com/maps/dir/?api=1&destination=${property.latitude},${property.longitude}`;
+    : property.latitude && property.longitude
+    ? `https://www.google.com/maps/dir/?api=1&destination=${property.latitude},${property.longitude}`
+    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hostelQuery)}`;
 
   // Direct Google Maps Place Search URL
   const googleMapsUrl = customMapUrl && !isEmbedUrl
     ? customMapUrl
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${property.title}, ${property.address || property.area}, ${property.city}`)}`;
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hostelQuery)}`;
 
   // Walking route to nearby college if available
   const collegeRouteUrl = property.nearbyCollegeName

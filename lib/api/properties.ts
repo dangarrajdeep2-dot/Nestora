@@ -227,7 +227,7 @@ async function fetchAllProperties(): Promise<Property[]> {
         city: row.city,
         latitude: Number(row.latitude),
         longitude: Number(row.longitude),
-        googleMapUrl: row.source_url || undefined,
+        googleMapUrl: row.source_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${row.title || ''}, ${row.area || ''}, ${row.city || ''}`)}`,
         nearbyCollegeId: row.nearby_college_id,
         nearbyCollegeName: row.colleges?.name,
         distanceKm: undefined,
