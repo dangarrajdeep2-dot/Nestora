@@ -30,12 +30,7 @@ import { formatCurrency } from '@/lib/utils';
 import { useSavedProperties } from '@/lib/utils/favorites';
 import { EnquiryModal } from './EnquiryModal';
 import { ReviewModal } from './ReviewModal';
-import dynamic from 'next/dynamic';
-
-const PropertyMap = dynamic(() => import('@/components/listings/PropertyMap'), {
-  ssr: false,
-  loading: () => <div className="h-64 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-2xl flex items-center justify-center text-slate-400">Loading map...</div>,
-});
+import { GoogleMapLocation } from './GoogleMapLocation';
 
 export function PropertyDetailsView({ property }: { property: Property }) {
   const { isSaved, toggle } = useSavedProperties();
@@ -450,25 +445,8 @@ export function PropertyDetailsView({ property }: { property: Property }) {
               </ul>
             </div>
 
-            {/* 7. Location & Map */}
-            <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200/60 dark:border-slate-800/80 space-y-4">
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
-                Location on Map
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
-                {property.address}
-              </p>
-              <div className="h-72 w-full rounded-2xl overflow-hidden shadow-inner border border-slate-200 dark:border-slate-800">
-                <PropertyMap
-                  properties={[property]}
-                  searchedLocation={{
-                    name: property.title,
-                    latitude: property.latitude,
-                    longitude: property.longitude,
-                  }}
-                />
-              </div>
-            </div>
+            {/* 7. Location & Google Map */}
+            <GoogleMapLocation property={property} />
 
             {/* 8. Student Reviews & Ratings */}
             <div id="student-reviews" className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200/60 dark:border-slate-800/80 space-y-5">

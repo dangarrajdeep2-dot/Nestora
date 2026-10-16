@@ -196,16 +196,27 @@ export default function PropertyMap({
                     <MapPin size={10} className="mr-0.5 shrink-0 text-emerald-600" />
                     {prop.area}
                   </p>
-                  <div className="flex items-center justify-between border-t pt-1.5">
+                  <div className="flex items-center justify-between border-t pt-1.5 gap-1.5">
                     <span className="font-extrabold text-emerald-600 text-xs">
                       {formatCurrency(prop.startingRent)}/mo
                     </span>
-                    <Link
-                      href={`/property/${prop.id}`}
-                      className="text-[10px] bg-emerald-600 text-white px-2.5 py-1 rounded-md font-bold hover:bg-emerald-700 transition"
-                    >
-                      Details
-                    </Link>
+                    <div className="flex items-center gap-1.5">
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${prop.latitude},${prop.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] text-emerald-600 hover:text-emerald-700 font-bold hover:underline"
+                        title="Get Google Maps directions"
+                      >
+                        Directions ↗
+                      </a>
+                      <Link
+                        href={`/property/${prop.id}`}
+                        className="text-[10px] bg-emerald-600 text-white px-2 py-1 rounded-md font-bold hover:bg-emerald-700 transition"
+                      >
+                        Details
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </Popup>
