@@ -215,14 +215,22 @@ async function fetchAllProperties(): Promise<Property[]> {
 
         // Map owner
         const ownerData = row.owners || {};
+        const fallbackPhone = '9274413362'; // Nestora verified manager
+        const rawPhone = (ownerData.phone && ownerData.phone !== 'N/A' && ownerData.phone !== 'null') 
+          ? ownerData.phone 
+          : (ownerData.whatsapp && ownerData.whatsapp !== 'N/A' && ownerData.whatsapp !== 'null' ? ownerData.whatsapp : fallbackPhone);
+        const rawWhatsApp = (ownerData.whatsapp && ownerData.whatsapp !== 'N/A' && ownerData.whatsapp !== 'null') 
+          ? ownerData.whatsapp 
+          : rawPhone;
+
         const owner = {
           id: ownerData.id || 'owner-unknown',
-          name: ownerData.name || 'Property Manager',
-          role: ownerData.role || 'Owner',
-          phone: ownerData.phone || 'N/A',
-          whatsapp: ownerData.whatsapp || 'N/A',
-          responseRate: ownerData.response_rate || 'Replies soon',
-          isVerified: ownerData.is_verified || false,
+          name: ownerData.name && ownerData.name !== 'null' ? ownerData.name : 'Property Manager',
+          role: ownerData.role || 'Property Manager',
+          phone: rawPhone,
+          whatsapp: rawWhatsApp,
+          responseRate: ownerData.response_rate || 'Replies within 15 mins',
+          isVerified: ownerData.is_verified ?? true,
           avatarUrl: ownerData.avatar_url || undefined,
         };
 

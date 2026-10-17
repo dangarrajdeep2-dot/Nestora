@@ -36,11 +36,33 @@ import { GoogleMapLocation } from './GoogleMapLocation';
 
 function cleanWhatsAppNumber(whatsapp?: string, phone?: string): string {
   const raw = whatsapp || phone || '';
+  if (!raw || raw === 'N/A' || raw === 'null' || raw === 'undefined') return '';
   const digits = raw.replace(/\D/g, '');
   if (digits.length === 10) return `91${digits}`;
   if (digits.length === 12 && digits.startsWith('91')) return digits;
   if (digits.length > 10 && digits.startsWith('0')) return `91${digits.slice(1)}`;
-  return digits;
+  return digits.length >= 10 ? digits.slice(-10) : digits;
+}
+
+function cleanCallablePhone(phone?: string, whatsapp?: string): string {
+  const raw = phone || whatsapp || '';
+  if (!raw || raw === 'N/A' || raw === 'null' || raw === 'undefined') return '';
+  const digits = raw.replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.length === 10) return `+91${digits}`;
+  if (digits.length === 12 && digits.startsWith('91')) return `+${digits}`;
+  if (digits.length > 10 && digits.startsWith('0')) return `+91${digits.slice(1)}`;
+  return `+91${digits.slice(-10)}`;
+}
+
+function formatDisplayPhone(phone?: string, whatsapp?: string): string {
+  const cleaned = cleanCallablePhone(phone, whatsapp);
+  if (!cleaned) return '';
+  const digits = cleaned.replace(/\D/g, '').slice(-10);
+  if (digits.length === 10) {
+    return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+  }
+  return cleaned;
 }
 
 export function PropertyDetailsView({ property }: { property: Property }) {
@@ -199,6 +221,16 @@ export function PropertyDetailsView({ property }: { property: Property }) {
     : ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1000&q=80'];
 
   const ownerWhatsApp = cleanWhatsAppNumber(property.owner.whatsapp, property.owner.phone);
+  const callPhoneNumber = cleanCallablePhone(property.owner.phone, property.owner.whatsapp);
+  const displayPhone = formatDisplayPhone(property.owner.phone, property.owner.whatsapp);
+
+  const handleCallOwner = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!callPhoneNumber) return;
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(callPhoneNumber).catch(() => {});
+    }
+    window.location.href = `tel:${callPhoneNumber}`;
+  };
 
   const studentGreeting = studentProfile?.name
     ? `Hello ${property.owner.name}, my name is ${studentProfile.name}${studentProfile.college ? ` (Student at ${studentProfile.college})` : ''}. I am interested in your stay "${property.title}" in ${property.area}, ${property.city} (Listed on Nestora). Is a bed currently available?`
@@ -478,13 +510,14 @@ export function PropertyDetailsView({ property }: { property: Property }) {
                         <MessageCircle size={14} />
                         <span>Chat on WhatsApp</span>
                       </a>
-                    ) : property.owner.phone ? (
+                    ) : callPhoneNumber ? (
                       <a
-                        href={`tel:+91${property.owner.phone}`}
-                        className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        href={`tel:${callPhoneNumber}`}
+                        onClick={handleCallOwner}
+                        className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <Phone size={14} />
-                        <span>Call Owner</span>
+                        <span>Call Owner ({displayPhone})</span>
                       </a>
                     ) : null}
                   </div>
@@ -770,13 +803,14 @@ export function PropertyDetailsView({ property }: { property: Property }) {
                 )}
 
                 {/* Call Owner Button */}
-                {property.owner.phone && (
+                {callPhoneNumber && (
                   <a
-                    href={`tel:+91${property.owner.phone}`}
-                    className="btn-3d w-full py-3 px-4 glass-card hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition border border-slate-200 dark:border-slate-800"
+                    href={`tel:${callPhoneNumber}`}
+                    onClick={handleCallOwner}
+                    className="btn-3d w-full py-3.5 px-4 glass-card hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition border border-slate-200 dark:border-slate-800 cursor-pointer shadow-sm"
                   >
                     <Phone size={16} />
-                    <span>Call Owner (+91 {property.owner.phone})</span>
+                    <span>Call Owner ({displayPhone})</span>
                   </a>
                 )}
               </div>
@@ -811,11 +845,13 @@ export function PropertyDetailsView({ property }: { property: Property }) {
           </div>
 
           <div className="flex items-center gap-2">
-            {property.owner.phone && (
+            {callPhoneNumber && (
               <a
-                href={`tel:+91${property.owner.phone}`}
-                className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl flex items-center justify-center shadow-sm border border-slate-200 dark:border-slate-700"
-                aria-label="Call"
+                href={`tel:${callPhoneNumber}`}
+                onClick={handleCallOwner}
+                className="p-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-xl flex items-center justify-center shadow-md cursor-pointer"
+                aria-label="Call Owner"
+                title={`Call Owner: ${displayPhone}`}
               >
                 <Phone size={18} />
               </a>
