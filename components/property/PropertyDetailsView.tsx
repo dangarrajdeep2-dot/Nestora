@@ -464,13 +464,29 @@ export function PropertyDetailsView({ property }: { property: Property }) {
                       </ul>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleOpenEnquiry(room.roomType)}
-                      className="w-full py-2 bg-emerald-500/10 hover:bg-emerald-600 text-emerald-700 dark:text-emerald-300 hover:text-white rounded-xl text-xs font-bold transition text-center cursor-pointer border border-emerald-500/20 hover:border-transparent"
-                    >
-                      Enquire for this room
-                    </button>
+                    {ownerWhatsApp ? (
+                      <a
+                        href={`https://wa.me/${ownerWhatsApp}?text=${encodeURIComponent(
+                          studentProfile?.name
+                            ? `Hello ${property.owner.name}, my name is ${studentProfile.name}${studentProfile.college ? ` (Student at ${studentProfile.college})` : ''}. I am interested in ${room.roomType} room (₹${room.rent.toLocaleString()}/mo) at "${property.title}" in ${property.area}, ${property.city}. Is a bed currently available?`
+                            : `Hello ${property.owner.name}, I am interested in ${room.roomType} room (₹${room.rent.toLocaleString()}/mo) at "${property.title}" in ${property.area}, ${property.city}. Is a bed currently available?`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm shadow-emerald-500/20"
+                      >
+                        <MessageCircle size={14} />
+                        <span>Chat on WhatsApp</span>
+                      </a>
+                    ) : property.owner.phone ? (
+                      <a
+                        href={`tel:+91${property.owner.phone}`}
+                        className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Phone size={14} />
+                        <span>Call Owner</span>
+                      </a>
+                    ) : null}
                   </div>
                 ))}
               </div>
@@ -740,24 +756,15 @@ export function PropertyDetailsView({ property }: { property: Property }) {
 
               {/* Action Buttons in Emerald Theme */}
               <div className="space-y-3">
-                {/* Send Enquiry Button */}
-                <button
-                  onClick={() => handleOpenEnquiry()}
-                  className="btn-3d w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-2xl font-bold text-sm shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition cursor-pointer"
-                >
-                  <Send size={16} />
-                  <span>Send Free Enquiry</span>
-                </button>
-
-                {/* WhatsApp Button */}
+                {/* WhatsApp Button as Primary Action */}
                 {ownerWhatsApp && (
                   <a
                     href={`https://wa.me/${ownerWhatsApp}?text=${encodedWhatsAppMsg}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn-3d w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold text-sm shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition"
+                    className="btn-3d w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-sm shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition"
                   >
-                    <MessageCircle size={17} />
+                    <MessageCircle size={18} />
                     <span>Chat on WhatsApp</span>
                   </a>
                 )}
@@ -804,35 +811,27 @@ export function PropertyDetailsView({ property }: { property: Property }) {
           </div>
 
           <div className="flex items-center gap-2">
-            {ownerWhatsApp && (
-              <a
-                href={`https://wa.me/${ownerWhatsApp}?text=${encodedWhatsAppMsg}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2.5 bg-emerald-500 text-white rounded-xl flex items-center justify-center shadow"
-                aria-label="WhatsApp"
-              >
-                <MessageCircle size={18} />
-              </a>
-            )}
-
             {property.owner.phone && (
               <a
                 href={`tel:+91${property.owner.phone}`}
-                className="p-2.5 bg-slate-900 dark:bg-slate-800 text-white rounded-xl flex items-center justify-center shadow"
+                className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl flex items-center justify-center shadow-sm border border-slate-200 dark:border-slate-700"
                 aria-label="Call"
               >
                 <Phone size={18} />
               </a>
             )}
 
-            <button
-              onClick={() => handleOpenEnquiry()}
-              className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-500/25 flex items-center gap-1.5"
-            >
-              <Send size={14} />
-              <span>Enquire</span>
-            </button>
+            {ownerWhatsApp && (
+              <a
+                href={`https://wa.me/${ownerWhatsApp}?text=${encodedWhatsAppMsg}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-500/25 flex items-center gap-1.5"
+              >
+                <MessageCircle size={16} />
+                <span>Chat on WhatsApp</span>
+              </a>
+            )}
           </div>
         </div>
       </div>
