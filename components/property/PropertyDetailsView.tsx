@@ -34,6 +34,15 @@ import { supabase } from '@/lib/supabase/client';
 import { ReviewModal } from './ReviewModal';
 import { GoogleMapLocation } from './GoogleMapLocation';
 
+function cleanWhatsAppNumber(whatsapp?: string, phone?: string): string {
+  const raw = whatsapp || phone || '';
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) return `91${digits}`;
+  if (digits.length === 12 && digits.startsWith('91')) return digits;
+  if (digits.length > 10 && digits.startsWith('0')) return `91${digits.slice(1)}`;
+  return digits;
+}
+
 export function PropertyDetailsView({ property }: { property: Property }) {
   const { isSaved, toggle } = useSavedProperties();
   const saved = isSaved(property.id);
@@ -42,6 +51,7 @@ export function PropertyDetailsView({ property }: { property: Property }) {
   const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [studentProfile, setStudentProfile] = useState<{ name: string; college: string } | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedRoomForEnquiry, setSelectedRoomForEnquiry] = useState<string | undefined>();
   const [isCopied, setIsCopied] = useState(false);
@@ -88,6 +98,19 @@ export function PropertyDetailsView({ property }: { property: Property }) {
           if (!isMounted) return;
           if (adminRecord) {
             authed = false;
+          } else {
+            const { data: profile } = await supabase
+              .from('users')
+              .select('name, college')
+              .eq('id', user.id)
+              .maybeSingle();
+
+            if (profile && isMounted) {
+              setStudentProfile({
+                name: profile.name || '',
+                college: profile.college || '',
+              });
+            }
           }
         }
 
@@ -114,7 +137,10 @@ export function PropertyDetailsView({ property }: { property: Property }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!session?.user) {
-        if (isMounted) setIsAuthenticated(false);
+        if (isMounted) {
+          setIsAuthenticated(false);
+          setStudentProfile(null);
+        }
       } else {
         const { data: adminRecord } = await supabase
           .from('admin_users')
@@ -124,6 +150,20 @@ export function PropertyDetailsView({ property }: { property: Property }) {
 
         if (isMounted) {
           setIsAuthenticated(!adminRecord);
+          if (!adminRecord) {
+            const { data: profile } = await supabase
+              .from('users')
+              .select('name, college')
+              .eq('id', session.user.id)
+              .maybeSingle();
+
+            if (profile && isMounted) {
+              setStudentProfile({
+                name: profile.name || '',
+                college: profile.college || '',
+              });
+            }
+          }
         }
       }
     });
@@ -158,9 +198,13 @@ export function PropertyDetailsView({ property }: { property: Property }) {
     ? property.images 
     : ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1000&q=80'];
 
-  const encodedWhatsAppMsg = encodeURIComponent(
-    `Hello ${property.owner.name}, I am a student interested in your stay "${property.title}" in ${property.area}, ${property.city} (Listed on Nestora). Is a bed currently available?`
-  );
+  const ownerWhatsApp = cleanWhatsAppNumber(property.owner.whatsapp, property.owner.phone);
+
+  const studentGreeting = studentProfile?.name
+    ? `Hello ${property.owner.name}, my name is ${studentProfile.name}${studentProfile.college ? ` (Student at ${studentProfile.college})` : ''}. I am interested in your stay "${property.title}" in ${property.area}, ${property.city} (Listed on Nestora). Is a bed currently available?`
+    : `Hello ${property.owner.name}, I am a student interested in your stay "${property.title}" in ${property.area}, ${property.city} (Listed on Nestora). Is a bed currently available?`;
+
+  const encodedWhatsAppMsg = encodeURIComponent(studentGreeting);
 
   const handleShare = () => {
     if (navigator.share) {
@@ -706,9 +750,9 @@ export function PropertyDetailsView({ property }: { property: Property }) {
                 </button>
 
                 {/* WhatsApp Button */}
-                {property.owner.whatsapp && (
+                {ownerWhatsApp && (
                   <a
-                    href={`https://wa.me/91${property.owner.whatsapp}?text=${encodedWhatsAppMsg}`}
+                    href={`https://wa.me/${ownerWhatsApp}?text=${encodedWhatsAppMsg}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-3d w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold text-sm shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition"
@@ -760,9 +804,9 @@ export function PropertyDetailsView({ property }: { property: Property }) {
           </div>
 
           <div className="flex items-center gap-2">
-            {property.owner.whatsapp && (
+            {ownerWhatsApp && (
               <a
-                href={`https://wa.me/91${property.owner.whatsapp}?text=${encodedWhatsAppMsg}`}
+                href={`https://wa.me/${ownerWhatsApp}?text=${encodedWhatsAppMsg}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2.5 bg-emerald-500 text-white rounded-xl flex items-center justify-center shadow"
