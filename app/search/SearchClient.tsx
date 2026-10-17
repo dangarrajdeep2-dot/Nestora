@@ -18,7 +18,8 @@ import { FilterState, Property } from '@/types';
 import { getProperties } from '@/lib/api/properties';
 import { PropertyCard } from '@/components/listings/PropertyCard';
 import { FilterSidebar } from '@/components/listings/FilterSidebar';
-import PropertyMap from '@/components/listings/PropertyMap';
+import dynamic from 'next/dynamic';
+const PropertyMap = dynamic(() => import('@/components/listings/PropertyMap'), { ssr: false, loading: () => <div className="h-80 sm:h-96 w-full rounded-3xl bg-slate-100 dark:bg-slate-900 animate-pulse flex items-center justify-center text-slate-400">Loading map...</div> });
 import { 
   SearchResultsSkeleton, 
   NoResultsState, 
@@ -62,13 +63,23 @@ export function SearchClient() {
     const gender = (searchParams.get('gender') as 'boys' | 'girls' | 'all') || 'all';
 
     Promise.resolve().then(() => {
-      setFilters((prev) => ({
-        ...prev,
-        query: q,
-        lat,
-        lng,
-        gender,
-      }));
+      setFilters((prev) => {
+        if (
+          prev.query === q &&
+          prev.lat === lat &&
+          prev.lng === lng &&
+          prev.gender === gender
+        ) {
+          return prev;
+        }
+        return {
+          ...prev,
+          query: q,
+          lat,
+          lng,
+          gender,
+        };
+      });
     });
   }, [searchParams]);
 
@@ -77,7 +88,10 @@ export function SearchClient() {
     setIsLoading(true);
     setHasError(false);
     try {
-      const response = await getProperties(filters);
+      const timeoutPromise = new Promise<{ properties: Property[] }>((_, reject) =>
+        setTimeout(() => reject(new Error('Search properties timeout')), 8000)
+      );
+      const response = await Promise.race([getProperties(filters), timeoutPromise]);
       setProperties(response.properties);
     } catch {
       setHasError(true);

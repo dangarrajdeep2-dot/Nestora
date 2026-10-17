@@ -11,13 +11,13 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'light',
+  theme: 'dark',
   toggleTheme: () => {},
   setTheme: () => {},
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>('dark');
 
   const applyThemeClass = (newTheme: Theme) => {
     const root = document.documentElement;
@@ -31,10 +31,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Read from localStorage or system preference
+    // Read from localStorage if explicitly set, otherwise default to dark
     const saved = localStorage.getItem('nestora_theme') as Theme | null;
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initial = saved || (prefersDark ? 'dark' : 'light');
+    const initial: Theme = saved === 'light' || saved === 'dark' ? saved : 'dark';
 
     Promise.resolve().then(() => {
       setThemeState(initial);
@@ -49,7 +48,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   const toggleTheme = () => {
-    const next = theme === 'light' ? 'dark' : 'light';
+    const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
   };
 

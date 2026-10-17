@@ -7,6 +7,7 @@ import { Property } from '@/types';
 import { getPropertyById } from '@/lib/api/properties';
 import { useSavedProperties } from '@/lib/utils/favorites';
 import { PropertyCard } from '@/components/listings/PropertyCard';
+import { supabase } from '@/lib/supabase/client';
 import { EmptySavedState, SearchResultsSkeleton } from '@/components/ui/States';
 
 export default function SavedPage() {
@@ -17,28 +18,60 @@ export default function SavedPage() {
   useEffect(() => {
     if (!isLoaded) return;
 
+    let isMounted = true;
+
     const loadProperties = async () => {
       setIsLoading(true);
-      if (savedIds.length === 0) {
-        setProperties([]);
-        setIsLoading(false);
-        return;
-      }
+      try {
+        if (savedIds.length === 0) {
+          if (isMounted) {
+            setProperties([]);
+          }
+          return;
+        }
 
-      const fetched = await Promise.all(
-        savedIds.map((id) => getPropertyById(id))
-      );
-      setProperties(fetched.filter((p): p is Property => p !== null));
-      setIsLoading(false);
+        const fetchWithTimeout = (id: string) => {
+          return Promise.race([
+            getPropertyById(id),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 6000)),
+          ]);
+        };
+
+        const fetched = await Promise.all(
+          savedIds.map((id) => fetchWithTimeout(id))
+        );
+        if (isMounted) {
+          setProperties(fetched.filter((p): p is Property => p !== null));
+        }
+      } catch (err) {
+        console.error('Failed to load saved properties:', err);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
     };
 
     loadProperties();
+
+    return () => {
+      isMounted = false;
+    };
   }, [savedIds, isLoaded]);
 
-  const handleClearAll = () => {
+  const handleClearAll = async () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('nestora_saved_properties');
+      setProperties([]);
       window.dispatchEvent(new Event('nestora_saved_updated'));
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from('favorites').delete().eq('user_id', user.id);
+        }
+      } catch (err) {
+        console.error('Failed to clear server favorites:', err);
+      }
     }
   };
 

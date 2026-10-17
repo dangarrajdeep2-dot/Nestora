@@ -26,37 +26,94 @@ export default function PropertyMap({
   onSelectProperty,
 }: PropertyMapProps) {
   const [mounted, setMounted] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [LeafletComponents, setLeafletComponents] = useState<any>(null);
+
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let isCancelled = false;
+
+    const timer = setTimeout(() => {
+      if (!isCancelled) {
+        setLoadError(true);
+      }
+    }, 6000);
+
     Promise.all([
       import('react-leaflet'),
       import('leaflet'),
-    ]).then(([reactLeaflet, leaflet]) => {
-      if (!isCancelled) {
-        delete (leaflet.default.Icon.Default.prototype as any)._getIconUrl;
-        leaflet.default.Icon.Default.mergeOptions({
-          iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-          iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-          shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-        });
+    ])
+      .then(([reactLeaflet, leaflet]) => {
+        if (!isCancelled) {
+          clearTimeout(timer);
+          try {
+            delete (leaflet.default.Icon.Default.prototype as any)._getIconUrl;
+            leaflet.default.Icon.Default.mergeOptions({
+              iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+              iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+              shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+            });
 
-        setLeafletComponents({
-          MapContainer: reactLeaflet.MapContainer,
-          TileLayer: reactLeaflet.TileLayer,
-          Marker: reactLeaflet.Marker,
-          Popup: reactLeaflet.Popup,
-          L: leaflet.default,
-        });
-        setMounted(true);
-      }
-    });
+            setLeafletComponents({
+              MapContainer: reactLeaflet.MapContainer,
+              TileLayer: reactLeaflet.TileLayer,
+              Marker: reactLeaflet.Marker,
+              Popup: reactLeaflet.Popup,
+              L: leaflet.default,
+            });
+            setMounted(true);
+          } catch {
+            setLoadError(true);
+          }
+        }
+      })
+      .catch(() => {
+        if (!isCancelled) {
+          clearTimeout(timer);
+          setLoadError(true);
+        }
+      });
 
     return () => {
       isCancelled = true;
+      clearTimeout(timer);
     };
-  }, []);
+  }, [retryCount]);
+
+  const targetAddress = searchedLocation?.name || (properties.length > 0 ? properties[0].address : 'Gujarat, India');
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(targetAddress)}`;
+
+  if (loadError) {
+    return (
+      <div className="w-full h-full min-h-[350px] bg-slate-100 dark:bg-slate-900 rounded-3xl flex flex-col items-center justify-center p-6 text-center border border-slate-200 dark:border-slate-800">
+        <MapPin size={36} className="text-emerald-500 mb-2" />
+        <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">
+          Interactive Map Temporarily Unavailable
+        </h4>
+        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mb-4">
+          Location: {targetAddress}
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => { setLoadError(false); setRetryCount((c) => c + 1); }}
+            className="px-4 py-2 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-xl transition cursor-pointer"
+          >
+            Retry Loading Map
+          </button>
+          <a
+            href={googleMapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-sm"
+          >
+            Open in Google Maps &rarr;
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   if (!mounted || !LeafletComponents) {
     return (
@@ -69,16 +126,26 @@ export default function PropertyMap({
 
   const { MapContainer, TileLayer, Marker, Popup, L } = LeafletComponents;
 
+  // Filter valid coordinates
+  const validProperties = properties.filter(
+    (p) => typeof p.latitude === 'number' && !isNaN(p.latitude) && typeof p.longitude === 'number' && !isNaN(p.longitude)
+  );
+
   // Center calculation
   let centerLat = 22.2905;
   let centerLng = 70.7818;
 
-  if (searchedLocation?.latitude && searchedLocation?.longitude) {
+  if (
+    typeof searchedLocation?.latitude === 'number' &&
+    !isNaN(searchedLocation.latitude) &&
+    typeof searchedLocation?.longitude === 'number' &&
+    !isNaN(searchedLocation.longitude)
+  ) {
     centerLat = searchedLocation.latitude;
     centerLng = searchedLocation.longitude;
-  } else if (properties.length > 0) {
-    centerLat = properties[0].latitude;
-    centerLng = properties[0].longitude;
+  } else if (validProperties.length > 0) {
+    centerLat = validProperties[0].latitude;
+    centerLng = validProperties[0].longitude;
   }
 
   // Create custom emerald price badges for markers
@@ -150,7 +217,7 @@ export default function PropertyMap({
         />
 
         {/* Searched Target Location Marker */}
-        {searchedLocation?.latitude && searchedLocation?.longitude && (
+        {typeof searchedLocation?.latitude === 'number' && !isNaN(searchedLocation.latitude) && typeof searchedLocation?.longitude === 'number' && !isNaN(searchedLocation.longitude) && (
           <Marker
             position={[searchedLocation.latitude, searchedLocation.longitude]}
             icon={centerIcon}
@@ -165,7 +232,7 @@ export default function PropertyMap({
         )}
 
         {/* Accommodation Pins */}
-        {properties.map((prop) => {
+        {validProperties.map((prop) => {
           const isSelected = selectedPropertyId === prop.id;
           return (
             <Marker
@@ -183,6 +250,7 @@ export default function PropertyMap({
                       src={prop.images[0]}
                       alt={prop.title}
                       fill
+                      sizes="192px"
                       className="object-cover"
                     />
                     <span className="absolute bottom-1 left-1 bg-black/75 text-white text-[10px] px-1.5 py-0.5 rounded font-bold capitalize">

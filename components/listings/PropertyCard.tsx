@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { SafeImage } from '@/components/ui/SafeImage';
 import { 
   ShieldCheck, 
@@ -23,6 +24,7 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps) {
+  const router = useRouter();
   const { isSaved, toggle } = useSavedProperties();
   const saved = isSaved(property.id);
 
@@ -36,9 +38,33 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
     ? property.rooms[0].sharing.replace('-', ' ').replace('plus', '+')
     : 'Multiple Sharing';
 
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button, a, [data-prevent-card-click="true"]')) {
+      return;
+    }
+    if (e.metaKey || e.ctrlKey) {
+      window.open(`/property/${property.id}`, '_blank');
+      return;
+    }
+    router.push(`/property/${property.id}`);
+  };
+
+  const handleAuxClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button === 1) {
+      const target = e.target as HTMLElement;
+      if (target.closest('button, a, [data-prevent-card-click="true"]')) {
+        return;
+      }
+      window.open(`/property/${property.id}`, '_blank');
+    }
+  };
+
   const cardContent = (
     <div 
-      className={`group glass-card hover:border-emerald-500/50 dark:hover:border-emerald-500/60 rounded-3xl transition-all duration-300 flex flex-col overflow-hidden relative md:preserve-3d h-full ${
+      onClick={handleCardClick}
+      onAuxClick={handleAuxClick}
+      className={`group glass-card hover:border-emerald-500/50 dark:hover:border-emerald-500/60 rounded-3xl transition-all duration-300 flex flex-col overflow-hidden relative md:preserve-3d h-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50 ${
         viewMode === 'list' ? 'sm:flex-row' : ''
       }`}
     >
@@ -72,7 +98,7 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
                   : 'bg-purple-600/95 text-white'
               }`}
             >
-              {property.gender === 'girls' ? 'Girls Only' : property.gender === 'boys' ? 'Boys Only' : 'Co-ed'}
+              {property.gender === 'girls' ? 'Girls Only' : property.gender === 'boys' ? 'Boys Only' : 'Boys & Girls'}
             </span>
 
             {/* Property Type Badge */}
@@ -84,6 +110,7 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
           {/* Interactive Favorite / Save Button */}
           <button
             type="button"
+            data-prevent-card-click="true"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -139,7 +166,11 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
           </div>
 
           {/* Property Name */}
-          <Link href={`/property/${property.id}`} className="group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+          <Link
+            href={`/property/${property.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors block"
+          >
             <h3 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg line-clamp-1 mb-1">
               {property.title}
             </h3>
@@ -182,6 +213,7 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
 
           <Link
             href={`/property/${property.id}`}
+            onClick={(e) => e.stopPropagation()}
             className="btn-3d inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold transition-all duration-200 shadow-sm hover:shadow"
           >
             <span>View details</span>

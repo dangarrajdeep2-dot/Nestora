@@ -12,7 +12,7 @@ export default async function AdminDashboard() {
   const archived = properties.filter(p => p.verification === 'unverified').length;
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6 sm:space-y-8 w-full min-w-0">
       <div>
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Dashboard Overview</h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">

@@ -73,6 +73,7 @@ export function Hero3DVisualizer() {
               src="https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80"
               alt="Student PG Room"
               fill
+              sizes="(max-width: 1024px) 100vw, 450px"
               priority
               className="object-cover"
             />

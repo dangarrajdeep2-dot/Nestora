@@ -21,28 +21,88 @@ interface EnquiryModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedRoomType?: string;
+  onRequireAuth?: () => void;
 }
 
-export function EnquiryModal({ property, isOpen, onClose, selectedRoomType }: EnquiryModalProps) {
-  const [studentName, setStudentName] = useState('');
-  const [studentPhone, setStudentPhone] = useState('');
-  const [studentCollege, setStudentCollege] = useState('');
-  const [moveInDate, setMoveInDate] = useState('');
+export function EnquiryModal({ property, isOpen, onClose, selectedRoomType, onRequireAuth }: EnquiryModalProps) {
+  const [initialData] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const saved = sessionStorage.getItem('nestora_pending_enquiry');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.propertyId === property.id) {
+          sessionStorage.removeItem('nestora_pending_enquiry');
+          return parsed;
+        }
+      }
+    } catch {}
+    return null;
+  });
+
+  const [studentName, setStudentName] = useState(() => initialData?.studentName || '');
+  const [studentPhone, setStudentPhone] = useState(() => (initialData?.studentPhone ? initialData.studentPhone.replace(/\D/g, '') : ''));
+  const [studentCollege, setStudentCollege] = useState(() => initialData?.studentCollege || '');
+  const [moveInDate, setMoveInDate] = useState(() => initialData?.moveInDate || '');
   const [sharingPreference, setSharingPreference] = useState(
-    selectedRoomType || property.rooms[0]?.roomType || '2 Sharing'
+    () => initialData?.sharingPreference || selectedRoomType || property.rooms[0]?.roomType || '2 Sharing'
   );
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(() => initialData?.message || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      // Fetch authenticated user details to auto-fill empty fields
+      import('@/lib/supabase/client').then(({ supabase }) => {
+        supabase.auth.getUser().then(({ data: { user } }) => {
+          if (user) {
+            supabase
+              .from('users')
+              .select('name, phone, college')
+              .eq('id', user.id)
+              .maybeSingle()
+              .then(({ data }) => {
+                if (data) {
+                  setStudentName((prev: string) => prev || data.name || '');
+                  setStudentPhone((prev: string) => prev || (data.phone ? data.phone.replace(/\D/g, '') : ''));
+                  setStudentCollege((prev: string) => prev || data.college || '');
+                }
+              });
+          }
+        });
+      });
+    }
+  }, [isOpen, property.id]);
 
   if (!isOpen) return null;
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digitsOnly = e.target.value.replace(/\D/g, '');
+    setStudentPhone(digitsOnly);
+
+    if (digitsOnly.length > 10) {
+      setErrors((prev) => ({
+        ...prev,
+        phone: 'Phone number must be exactly 10 digits.',
+      }));
+    } else {
+      setErrors((prev) => {
+        if (!prev.phone) return prev;
+        const next = { ...prev };
+        delete next.phone;
+        return next;
+      });
+    }
+  };
 
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!studentName.trim()) errs.name = 'Please enter your name';
-    if (!studentPhone.trim() || studentPhone.length < 10) {
-      errs.phone = 'Please enter a valid 10-digit phone number';
+    if (!studentPhone.trim() || studentPhone.length !== 10) {
+      errs.phone = 'Phone number must be exactly 10 digits.';
     }
     if (!studentCollege.trim()) errs.college = 'Please enter your college or university';
     if (!moveInDate) errs.date = 'Please select your tentative move-in date';
@@ -52,11 +112,40 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType }: En
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setServerErrorMessage(null);
     if (!validate()) return;
+
+    // Check client authentication before sending
+    const { supabase } = await import('@/lib/supabase/client');
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      // Store pending form details so user does not re-type upon returning
+      try {
+        sessionStorage.setItem(
+          'nestora_pending_enquiry',
+          JSON.stringify({
+            propertyId: property.id,
+            studentName,
+            studentPhone,
+            studentCollege,
+            moveInDate,
+            sharingPreference,
+            message,
+          })
+        );
+      } catch {}
+
+      onClose();
+      if (onRequireAuth) {
+        onRequireAuth();
+      }
+      return;
+    }
 
     setIsSubmitting(true);
     try {
-      await submitEnquiry({
+      const result = await submitEnquiry({
         propertyId: property.id,
         propertyName: property.title,
         studentName,
@@ -67,9 +156,37 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType }: En
         sharingPreference,
         message,
       });
+
+      if (!result.success) {
+        if (result.requireAuth) {
+          try {
+            sessionStorage.setItem(
+              'nestora_pending_enquiry',
+              JSON.stringify({
+                propertyId: property.id,
+                studentName,
+                studentPhone,
+                studentCollege,
+                moveInDate,
+                sharingPreference,
+                message,
+              })
+            );
+          } catch {}
+          onClose();
+          if (onRequireAuth) {
+            onRequireAuth();
+          }
+          return;
+        }
+
+        setServerErrorMessage(result.error || 'Failed to submit enquiry. Please try again.');
+        return;
+      }
+
       setIsSubmitted(true);
     } catch {
-      alert('Unable to send enquiry. Please try again or contact via WhatsApp.');
+      setServerErrorMessage('Unable to send enquiry. Please try again or contact via WhatsApp.');
     } finally {
       setIsSubmitting(false);
     }
@@ -126,6 +243,12 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType }: En
               </p>
             </div>
 
+            {serverErrorMessage && (
+              <div className="p-3 mb-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-semibold">
+                {serverErrorMessage}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Student Name */}
               <div>
@@ -155,9 +278,10 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType }: En
                   <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="tel"
+                    inputMode="numeric"
                     required
                     value={studentPhone}
-                    onChange={(e) => setStudentPhone(e.target.value)}
+                    onChange={handlePhoneChange}
                     placeholder="10-digit mobile number"
                     className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none"
                   />

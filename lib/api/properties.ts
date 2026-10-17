@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FilterState, Property, College, LocationRef, Enquiry } from '@/types';
+import { FilterState, Property, PropertyType, College, LocationRef, Enquiry } from '@/types';
 import { MOCK_PROPERTIES, MOCK_COLLEGES, POPULAR_LOCATIONS } from './mockData';
 import { calculateDistance } from '@/lib/utils/distance';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
@@ -17,7 +17,7 @@ export interface PropertySearchResponse {
 interface SupabasePropertyRow {
   id: string;
   title: string;
-  type: 'PG' | 'Hostel' | 'Room';
+  type: PropertyType;
   gender: 'boys' | 'girls' | 'co-ed';
   tagline: string | null;
   description: string | null;
@@ -83,10 +83,12 @@ interface SupabasePropertyRow {
 
 let cachedProperties: Property[] | null = null;
 let lastFetch = 0;
+let inFlightFetchAll: Promise<Property[]> | null = null;
 
 export function invalidatePropertiesCache(): void {
   cachedProperties = null;
   lastFetch = 0;
+  inFlightFetchAll = null;
 }
 
 async function fetchAllProperties(): Promise<Property[]> {
@@ -98,29 +100,41 @@ async function fetchAllProperties(): Promise<Property[]> {
     return cachedProperties;
   }
 
-  try {
-    const { data, error } = await supabase
-      .from('properties')
-      .select(`
-        *,
-        colleges(*),
-        owners(*),
-        rooms(*),
-        property_amenities(*),
-        food_details(*),
-        house_rules(*),
-        property_images(*),
-        reviews(*)
-      `);
+  if (inFlightFetchAll) {
+    return inFlightFetchAll;
+  }
+
+  inFlightFetchAll = (async () => {
+    try {
+      const fetchPromise = supabase
+        .from('properties')
+        .select(`
+          *,
+          colleges(*),
+          owners(*),
+          rooms(*),
+          property_amenities(*),
+          food_details(*),
+          house_rules(*),
+          property_images(*),
+          reviews(*)
+        `);
+
+      const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((_, reject) =>
+        setTimeout(() => reject(new Error('Supabase properties query timeout')), 10000)
+      );
+
+      const { data, error } = (await Promise.race([fetchPromise, timeoutPromise])) as any;
 
     if (error) {
-      console.warn('⚠️ SHOWING MOCK DATA: Supabase query failed.', error.message);
-      return MOCK_PROPERTIES;
+      console.error('Supabase query failed in fetchAllProperties:', error.message);
+      throw new Error(`Failed to load properties from Supabase: ${error.message}`);
     }
 
     if (!data || data.length === 0) {
-      console.warn('⚠️ SHOWING MOCK DATA: Supabase returned no properties.');
-      return MOCK_PROPERTIES;
+      cachedProperties = [];
+      lastFetch = Date.now();
+      return [];
     }
 
     const mappedProperties: Property[] = data.map((row: any) => {
@@ -226,13 +240,21 @@ async function fetchAllProperties(): Promise<Property[]> {
       };
     });
 
-    cachedProperties = mappedProperties;
-    lastFetch = Date.now();
-    return mappedProperties;
-  } catch (err) {
-    console.error('Error in fetchAllProperties:', err);
-    return MOCK_PROPERTIES;
-  }
+      cachedProperties = mappedProperties;
+      lastFetch = Date.now();
+      return mappedProperties;
+    } catch (err) {
+      console.error('Error in fetchAllProperties:', err);
+      if (!isSupabaseConfigured) {
+        return MOCK_PROPERTIES;
+      }
+      throw err;
+    } finally {
+      inFlightFetchAll = null;
+    }
+  })();
+
+  return inFlightFetchAll;
 }
 
 /**
@@ -277,8 +299,8 @@ export async function getProperties(filters: FilterState = {}): Promise<Property
   // 2. Gender filter
   if (filters.gender && filters.gender !== 'all') {
     results = results.filter((prop) => {
-      if (filters.gender === 'boys') return prop.gender === 'boys' || prop.gender === 'co-ed';
-      if (filters.gender === 'girls') return prop.gender === 'girls' || prop.gender === 'co-ed';
+      if (filters.gender === 'boys') return prop.gender === 'boys' || prop.gender === 'co-ed' || prop.gender === 'boys_and_girls';
+      if (filters.gender === 'girls') return prop.gender === 'girls' || prop.gender === 'co-ed' || prop.gender === 'boys_and_girls';
       return true;
     });
   }
@@ -379,6 +401,55 @@ export async function getPropertyById(id: string): Promise<Property | null> {
 }
 
 export async function getPopularLocations(): Promise<LocationRef[]> {
+  if (isSupabaseConfigured) {
+    try {
+      const colleges = await getColleges();
+      const properties = await fetchAllProperties();
+
+      const locations: LocationRef[] = [];
+
+      // Add colleges from Supabase as student hubs
+      colleges.forEach((c) => {
+        locations.push({
+          id: `col-${c.id}`,
+          name: c.name,
+          area: c.area,
+          city: c.city,
+          latitude: c.latitude,
+          longitude: c.longitude,
+          type: 'college',
+          subtitle: c.popularLandmark || `Student hub near ${c.name} in ${c.city}`,
+        });
+      });
+
+      // Add unique localities/areas from actual Supabase properties
+      const seenAreas = new Set<string>();
+      properties.forEach((p) => {
+        if (!p.area || !p.city) return;
+        const key = `${p.area.toLowerCase()}__${p.city.toLowerCase()}`;
+        if (!seenAreas.has(key)) {
+          seenAreas.add(key);
+          locations.push({
+            id: `area-${p.id}`,
+            name: `${p.area}, ${p.city}`,
+            area: p.area,
+            city: p.city,
+            latitude: p.latitude,
+            longitude: p.longitude,
+            type: 'area',
+            subtitle: `Verified stays in ${p.area}, ${p.city}`,
+          });
+        }
+      });
+
+      if (locations.length > 0) {
+        return locations;
+      }
+    } catch (e) {
+      console.warn('Could not load popular locations from Supabase:', e);
+    }
+  }
+
   return POPULAR_LOCATIONS;
 }
 
@@ -387,9 +458,13 @@ export async function getColleges(): Promise<College[]> {
   
   try {
     const { data, error } = await supabase.from('colleges').select('*');
-    if (error || !data || data.length === 0) {
-      console.warn('⚠️ SHOWING MOCK DATA (Colleges):', error?.message || 'No records found.');
-      return MOCK_COLLEGES;
+    if (error) {
+      console.error('Error fetching colleges from Supabase:', error.message);
+      throw new Error(`Failed to load colleges from Supabase: ${error.message}`);
+    }
+
+    if (!data || data.length === 0) {
+      return [];
     }
     
     return data.map(c => ({
@@ -403,8 +478,11 @@ export async function getColleges(): Promise<College[]> {
       popularLandmark: c.popular_landmark
     }));
   } catch(e) {
-    console.error('Error fetching colleges:', e);
-    return MOCK_COLLEGES;
+    console.error('Error in getColleges:', e);
+    if (!isSupabaseConfigured) {
+      return MOCK_COLLEGES;
+    }
+    throw e;
   }
 }
 
@@ -412,14 +490,15 @@ export async function getColleges(): Promise<College[]> {
  * Universal search suggesting colleges, areas, and localities
  */
 export async function searchLocations(query: string): Promise<LocationRef[]> {
+  const activeLocations = await getPopularLocations();
   const activeColleges = await getColleges();
 
   if (!query || !query.trim()) {
-    return POPULAR_LOCATIONS.slice(0, 5);
+    return activeLocations.slice(0, 5);
   }
   const q = query.toLowerCase().trim();
 
-  const matchedLocations = POPULAR_LOCATIONS.filter(
+  const matchedLocations = activeLocations.filter(
     (loc) =>
       loc.name.toLowerCase().includes(q) ||
       loc.area.toLowerCase().includes(q) ||
@@ -452,10 +531,17 @@ export async function searchLocations(query: string): Promise<LocationRef[]> {
   });
 }
 
+export interface SubmitEnquiryResponse {
+  success: boolean;
+  requireAuth?: boolean;
+  error?: string;
+  enquiry?: Enquiry;
+}
+
 /**
- * Mock enquiry submission with localStorage sync, and Supabase if available
+ * Enquiry submission with server-side validation and Supabase insertion
  */
-export async function submitEnquiry(enquiry: Omit<Enquiry, 'id' | 'status' | 'createdAt'>): Promise<Enquiry> {
+export async function submitEnquiry(enquiry: Omit<Enquiry, 'id' | 'status' | 'createdAt'>): Promise<SubmitEnquiryResponse> {
   const newEnquiry: Enquiry = {
     ...enquiry,
     id: `enq-${Date.now()}`,
@@ -464,20 +550,21 @@ export async function submitEnquiry(enquiry: Omit<Enquiry, 'id' | 'status' | 'cr
   };
 
   if (isSupabaseConfigured) {
-    const { error } = await supabase.from('enquiries').insert({
-      property_id: enquiry.propertyId,
-      property_name: enquiry.propertyName,
-      student_name: enquiry.studentName,
-      student_phone: enquiry.studentPhone,
+    const { submitEnquiryAction } = await import('@/lib/actions/enquiry');
+    const result = await submitEnquiryAction({
+      propertyId: enquiry.propertyId,
+      propertyName: enquiry.propertyName,
+      studentName: enquiry.studentName,
+      studentPhone: enquiry.studentPhone,
+      studentCollege: enquiry.studentCollege,
       gender: enquiry.gender,
-      move_in_date: enquiry.moveInDate || null,
-      sharing_preference: enquiry.sharingPreference,
-      status: 'pending'
+      moveInDate: enquiry.moveInDate,
+      sharingPreference: enquiry.sharingPreference,
+      message: enquiry.message,
     });
-    
-    if (error) {
-      console.error('Failed to submit enquiry to Supabase:', error);
-      throw new Error(error.message); // Throw to abort localStorage fallback and alert UI
+
+    if (!result.success) {
+      return result;
     }
   }
 
@@ -491,5 +578,5 @@ export async function submitEnquiry(enquiry: Omit<Enquiry, 'id' | 'status' | 'cr
     }
   }
 
-  return newEnquiry;
+  return { success: true, enquiry: newEnquiry };
 }

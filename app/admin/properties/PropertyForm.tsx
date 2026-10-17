@@ -26,8 +26,9 @@ import {
 } from 'lucide-react';
 import { createProperty, updatePropertyDetails, uploadPropertyImage } from '@/lib/actions/admin';
 import { SafeImage, isValidImageUrl, isUnsupportedShareUrl } from '@/components/ui/SafeImage';
+import { PropertyType } from '@/types';
 
-const CITIES = ['Rajkot', 'Ahmedabad', 'Surat', 'Vadodara'] as const;
+const CITIES = ['Rajkot', 'Ahmedabad', 'Surat', 'Vadodara', 'Vidyanagar Anand'] as const;
 
 const CITY_AREAS: Record<string, string[]> = {
   Rajkot: [
@@ -71,12 +72,24 @@ const CITY_AREAS: Record<string, string[]> = {
     'Karelibaug',
     'Gotri',
   ],
+  'Vidyanagar Anand': [
+    'Vallabh Vidyanagar',
+    'Nana Bazar',
+    'Mota Bazar',
+    'Bakrol Road',
+    'AV Road',
+    'Bhaikaka Marg',
+    'Anand Town',
+  ],
 };
 
 const STANDARD_AMENITIES = [
   'Wi-Fi',
   'Food',
   'AC',
+  'Non AC',
+  'AC And Non AC',
+  'Library',
   'Laundry',
   'Study table',
   'Attached bathroom',
@@ -144,8 +157,14 @@ export default function PropertyForm({
 
   // 1. Basic Info
   const [title, setTitle] = useState(initialProperty?.title || '');
-  const [type, setType] = useState<'PG' | 'Hostel' | 'Room'>(initialProperty?.type || 'PG');
-  const [gender, setGender] = useState<'boys' | 'girls'>(initialProperty?.gender === 'girls' ? 'girls' : 'boys');
+  const [type, setType] = useState<PropertyType>(initialProperty?.type || 'PG');
+  const initialGender: 'boys' | 'girls' | 'co-ed' =
+    initialProperty?.gender === 'girls'
+      ? 'girls'
+      : (initialProperty?.gender === 'co-ed' || initialProperty?.gender === 'boys_and_girls')
+      ? 'co-ed'
+      : 'boys';
+  const [gender, setGender] = useState<'boys' | 'girls' | 'co-ed'>(initialGender);
   const [verification, setVerification] = useState<'verified' | 'unverified'>(
     initialProperty?.verification === 'verified' ? 'verified' : 'unverified'
   );
@@ -593,7 +612,18 @@ export default function PropertyForm({
     }
   };
 
-  const filteredColleges = colleges.filter((c) => c.city.toLowerCase() === city.toLowerCase());
+  const filteredColleges = colleges.filter((c) => {
+    const cCity = (c.city || '').toLowerCase();
+    const selectedCity = city.toLowerCase();
+    if (cCity === selectedCity) return true;
+    if (
+      selectedCity === 'vidyanagar anand' &&
+      (cCity === 'anand' || cCity === 'vidyanagar' || cCity === 'vallabh vidyanagar')
+    ) {
+      return true;
+    }
+    return false;
+  });
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -613,7 +643,7 @@ export default function PropertyForm({
       )}
 
       {/* Top Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl backdrop-blur-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl backdrop-blur-xl w-full min-w-0">
         <div className="flex items-center gap-3">
           <Link
             href="/admin/properties"
@@ -689,12 +719,13 @@ export default function PropertyForm({
             </label>
             <select
               value={type}
-              onChange={(e) => setType(e.target.value as 'PG' | 'Hostel' | 'Room')}
+              onChange={(e) => setType(e.target.value as PropertyType)}
               className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
             >
               <option value="PG">PG (Paying Guest)</option>
               <option value="Hostel">Hostel</option>
               <option value="Room">Independent Room</option>
+              <option value="PG AND Hostel">PG AND Hostel</option>
             </select>
           </div>
 
@@ -704,11 +735,12 @@ export default function PropertyForm({
             </label>
             <select
               value={gender}
-              onChange={(e) => setGender(e.target.value as 'boys' | 'girls')}
+              onChange={(e) => setGender(e.target.value as 'boys' | 'girls' | 'co-ed')}
               className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
             >
-              <option value="boys">Boys Only</option>
-              <option value="girls">Girls Only</option>
+              <option value="boys">Boys</option>
+              <option value="girls">Girls</option>
+              <option value="co-ed">Boys and Girls</option>
             </select>
           </div>
 
@@ -1556,7 +1588,7 @@ export default function PropertyForm({
       </div>
 
       {/* Bottom Sticky Submit Bar */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800/80">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-slate-800/80">
         <Link
           href="/admin/properties"
           className="px-5 py-2.5 border border-slate-800 text-slate-400 hover:bg-slate-900 rounded-xl text-xs font-semibold transition"

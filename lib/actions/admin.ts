@@ -16,7 +16,7 @@ export async function requireAdmin(supabase: SupabaseClient) {
     .from('admin_users')
     .select('id')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
   if (adminError || !admin) {
     throw new Error('Forbidden: Admin privileges required.');

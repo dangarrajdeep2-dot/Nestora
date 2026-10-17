@@ -30,6 +30,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  allowedDevOrigins: [
+    'localhost',
+    '127.0.0.1',
+    '10.179.51.140',
+    'localhost:3000',
+    '127.0.0.1:3000',
+    '10.179.51.140:3000',
+  ],
 };
 
 export default nextConfig;
+

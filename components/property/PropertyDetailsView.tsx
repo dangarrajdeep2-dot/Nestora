@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeImage } from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import { 
@@ -28,6 +28,8 @@ import { Property } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { useSavedProperties } from '@/lib/utils/favorites';
 import { EnquiryModal } from './EnquiryModal';
+import { AuthModal } from '@/components/auth/AuthModal';
+import { supabase } from '@/lib/supabase/client';
 import dynamic from 'next/dynamic';
 
 const PropertyMap = dynamic(() => import('@/components/listings/PropertyMap'), {
@@ -41,8 +43,95 @@ export function PropertyDetailsView({ property }: { property: Property }) {
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [selectedRoomForEnquiry, setSelectedRoomForEnquiry] = useState<string | undefined>();
   const [isCopied, setIsCopied] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkAuthStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!isMounted) return;
+
+        let authed = Boolean(user);
+        if (user) {
+          const { data: adminRecord } = await supabase
+            .from('admin_users')
+            .select('id')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (!isMounted) return;
+          if (adminRecord) {
+            authed = false;
+          }
+        }
+
+        setIsAuthenticated(authed);
+
+        if (typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search);
+          if (params.get('enquire') === 'true') {
+            if (authed) {
+              setIsEnquiryModalOpen(true);
+            } else {
+              setIsAuthModalOpen(true);
+            }
+          }
+        }
+      } catch {
+        if (isMounted) {
+          setIsAuthenticated(false);
+        }
+      }
+    };
+
+    checkAuthStatus();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!session?.user) {
+        if (isMounted) setIsAuthenticated(false);
+      } else {
+        const { data: adminRecord } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (isMounted) {
+          setIsAuthenticated(!adminRecord);
+        }
+      }
+    });
+
+    const handleAuthChange = () => {
+      if (isMounted) {
+        checkAuthStatus();
+      }
+    };
+
+    window.addEventListener('nestora_auth_changed', handleAuthChange);
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+      window.removeEventListener('nestora_auth_changed', handleAuthChange);
+    };
+  }, []);
+
+  const handleOpenEnquiry = (roomType?: string) => {
+    if (roomType) {
+      setSelectedRoomForEnquiry(roomType);
+    }
+    if (!isAuthenticated) {
+      setIsAuthModalOpen(true);
+    } else {
+      setIsEnquiryModalOpen(true);
+    }
+  };
 
   const images = property.images && property.images.length > 0 
     ? property.images 
@@ -120,6 +209,7 @@ export function PropertyDetailsView({ property }: { property: Property }) {
                   src={images[activeImageIndex]}
                   alt={property.title}
                   fill
+                  sizes="(max-width: 1024px) 100vw, 750px"
                   priority
                   className="object-cover transition-all duration-300"
                 />
@@ -129,7 +219,7 @@ export function PropertyDetailsView({ property }: { property: Property }) {
                   <span className={`text-xs font-bold px-3 py-1 rounded-full shadow-md backdrop-blur-md ${
                     property.gender === 'girls' ? 'bg-rose-500 text-white' : property.gender === 'boys' ? 'bg-emerald-600 text-white' : 'bg-purple-600 text-white'
                   }`}>
-                    {property.gender === 'girls' ? 'Girls Only' : property.gender === 'boys' ? 'Boys Only' : 'Co-ed'}
+                    {property.gender === 'girls' ? 'Girls Only' : property.gender === 'boys' ? 'Boys Only' : 'Boys & Girls'}
                   </span>
                   <span className="text-xs font-bold px-3 py-1 rounded-full bg-black/75 text-white backdrop-blur-md shadow-md">
                     {property.type}
@@ -179,7 +269,7 @@ export function PropertyDetailsView({ property }: { property: Property }) {
                         activeImageIndex === idx ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-transparent opacity-70 hover:opacity-100'
                       }`}
                     >
-                      <SafeImage src={img} alt="Thumbnail" fill className="object-cover" />
+                      <SafeImage src={img} alt="Thumbnail" fill sizes="80px" className="object-cover" />
                     </button>
                   ))}
                 </div>
@@ -307,10 +397,7 @@ export function PropertyDetailsView({ property }: { property: Property }) {
 
                     <button
                       type="button"
-                      onClick={() => {
-                        setSelectedRoomForEnquiry(room.roomType);
-                        setIsEnquiryModalOpen(true);
-                      }}
+                      onClick={() => handleOpenEnquiry(room.roomType)}
                       className="w-full py-2 bg-emerald-500/10 hover:bg-emerald-600 text-emerald-700 dark:text-emerald-300 hover:text-white rounded-xl text-xs font-bold transition text-center cursor-pointer border border-emerald-500/20 hover:border-transparent"
                     >
                       Enquire for this room
@@ -509,7 +596,7 @@ export function PropertyDetailsView({ property }: { property: Property }) {
               <div className="space-y-3">
                 {/* Send Enquiry Button */}
                 <button
-                  onClick={() => setIsEnquiryModalOpen(true)}
+                  onClick={() => handleOpenEnquiry()}
                   className="btn-3d w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-2xl font-bold text-sm shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition cursor-pointer"
                 >
                   <Send size={16} />
@@ -594,7 +681,7 @@ export function PropertyDetailsView({ property }: { property: Property }) {
             )}
 
             <button
-              onClick={() => setIsEnquiryModalOpen(true)}
+              onClick={() => handleOpenEnquiry()}
               className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-500/25 flex items-center gap-1.5"
             >
               <Send size={14} />
@@ -610,6 +697,21 @@ export function PropertyDetailsView({ property }: { property: Property }) {
         isOpen={isEnquiryModalOpen}
         onClose={() => setIsEnquiryModalOpen(false)}
         selectedRoomType={selectedRoomForEnquiry}
+        onRequireAuth={() => setIsAuthModalOpen(true)}
+      />
+
+      {/* Authentication Prompt Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        title="Sign in to Send Enquiry"
+        subtitle={`Sign in to connect directly with property owners and send enquiries for ${property.title}.`}
+        nextParam={`/property/${property.id}?enquire=true`}
+        onSuccess={() => {
+          setIsAuthenticated(true);
+          setIsAuthModalOpen(false);
+          setIsEnquiryModalOpen(true);
+        }}
       />
 
     </div>

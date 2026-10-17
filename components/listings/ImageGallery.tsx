@@ -26,6 +26,7 @@ export default function ImageGallery({ images }: { images: ListingImage[] }) {
         src={images[currentIndex].image_url}
         alt={`Hostel Image ${currentIndex + 1}`}
         fill
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 800px"
         className="object-cover transition-opacity duration-300"
       />
 
