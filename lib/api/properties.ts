@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FilterState, Property, PropertyType, College, LocationRef, Enquiry } from '@/types';
+import { FilterState, Property, PropertyType, College, LocationRef, Enquiry, Review } from '@/types';
 import { MOCK_PROPERTIES, MOCK_COLLEGES, POPULAR_LOCATIONS } from './mockData';
 import { calculateDistance } from '@/lib/utils/distance';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
@@ -85,19 +85,66 @@ let cachedProperties: Property[] | null = null;
 let lastFetch = 0;
 let inFlightFetchAll: Promise<Property[]> | null = null;
 
+let cachedColleges: College[] = [...MOCK_COLLEGES];
+let isCollegesFetched = false;
+let isCollegesFetching = false;
+
 export function invalidatePropertiesCache(): void {
   cachedProperties = null;
   lastFetch = 0;
   inFlightFetchAll = null;
+  isCollegesFetched = false;
+}
+
+function mergeLocalReviews(properties: Property[]): Property[] {
+  if (typeof window === 'undefined') return properties;
+  try {
+    const localReviews: Review[] = JSON.parse(localStorage.getItem('nestora_reviews') || '[]');
+    if (!Array.isArray(localReviews) || localReviews.length === 0) return properties;
+
+    return properties.map((prop) => {
+      const propLocal = localReviews.filter(
+        (lr) => lr.propertyId === prop.id && !(prop.reviews || []).some((r) => r.id === lr.id)
+      );
+      if (propLocal.length === 0) return prop;
+      const combined = [...propLocal, ...(prop.reviews || [])];
+      const avg = combined.reduce((sum, r) => sum + r.rating, 0) / combined.length;
+      return {
+        ...prop,
+        reviews: combined,
+        rating: Number(avg.toFixed(1)),
+        reviewCount: combined.length,
+      };
+    });
+  } catch {
+    return properties;
+  }
+}
+
+function getCityCoordinates(city?: string): { lat: number; lng: number } {
+  const c = (city || '').toLowerCase();
+  if (c.includes('vadodara') || c.includes('baroda')) return { lat: 22.3072, lng: 73.1812 };
+  if (c.includes('ahmedabad')) return { lat: 23.0225, lng: 72.5714 };
+  if (c.includes('pune')) return { lat: 18.5204, lng: 73.8567 };
+  return { lat: 22.2905, lng: 70.7818 };
+}
+
+function normalizeSearchText(str?: string | null): string {
+  return (str || '')
+    .toLowerCase()
+    .replace(/[,.\-_]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/v/g, 'w') // e.g. marvadi -> marwadi
+    .trim();
 }
 
 async function fetchAllProperties(): Promise<Property[]> {
   if (!isSupabaseConfigured) {
-    return MOCK_PROPERTIES;
+    return mergeLocalReviews(MOCK_PROPERTIES);
   }
   
   if (cachedProperties && Date.now() - lastFetch < 60000) {
-    return cachedProperties;
+    return mergeLocalReviews(cachedProperties);
   }
 
   if (inFlightFetchAll) {
@@ -106,7 +153,11 @@ async function fetchAllProperties(): Promise<Property[]> {
 
   inFlightFetchAll = (async () => {
     try {
-      const fetchPromise = supabase
+      const timeoutPromise = new Promise<{ data: any; error: any }>((resolve) =>
+        setTimeout(() => resolve({ data: null, error: { message: 'Timeout fetching from Supabase' } }), 2500)
+      );
+
+      const queryPromise = supabase
         .from('properties')
         .select(`
           *,
@@ -120,135 +171,139 @@ async function fetchAllProperties(): Promise<Property[]> {
           reviews(*)
         `);
 
-      const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((_, reject) =>
-        setTimeout(() => reject(new Error('Supabase properties query timeout')), 10000)
-      );
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
-      const { data, error } = (await Promise.race([fetchPromise, timeoutPromise])) as any;
+      if (error) {
+        console.warn('⚠️ SHOWING MOCK/CACHED DATA: Supabase query failed or timed out.', error.message);
+        if (cachedProperties) return mergeLocalReviews(cachedProperties);
+        return mergeLocalReviews(MOCK_PROPERTIES);
+      }
 
-    if (error) {
-      console.error('Supabase query failed in fetchAllProperties:', error.message);
-      throw new Error(`Failed to load properties from Supabase: ${error.message}`);
-    }
+      if (!data || data.length === 0) {
+        console.warn('⚠️ SHOWING MOCK DATA: Supabase returned no properties.');
+        if (cachedProperties) return mergeLocalReviews(cachedProperties);
+        return mergeLocalReviews(MOCK_PROPERTIES);
+      }
 
-    if (!data || data.length === 0) {
-      cachedProperties = [];
-      lastFetch = Date.now();
-      return [];
-    }
+      const mappedProperties: Property[] = data.map((row: any) => {
+        // Map rooms
+        const mappedRooms = (row.rooms || []).map((r: any) => ({
+          id: r.id,
+          propertyId: r.property_id,
+          roomType: r.room_type,
+          sharing: r.sharing,
+          rent: r.rent,
+          deposit: r.deposit,
+          availableBeds: r.available_beds,
+          totalBeds: r.total_beds,
+          features: r.features || [],
+          isAvailable: r.is_available,
+        }));
 
-    const mappedProperties: Property[] = data.map((row: any) => {
-      // Map rooms
-      const mappedRooms = (row.rooms || []).map((r: any) => ({
-        id: r.id,
-        propertyId: r.property_id,
-        roomType: r.room_type,
-        sharing: r.sharing,
-        rent: r.rent,
-        deposit: r.deposit,
-        availableBeds: r.available_beds,
-        totalBeds: r.total_beds,
-        features: r.features || [],
-        isAvailable: r.is_available,
-      }));
+        // Map amenities
+        const amenities = (row.property_amenities || []).map((a: any) => a.amenity_name);
 
-      // Map amenities
-      const amenities = (row.property_amenities || []).map((a: any) => a.amenity_name);
+        // Map food details
+        const food = row.food_details?.[0] || {};
+        const foodDetails = {
+          included: food.included || false,
+          type: food.food_type || 'Self Cooking / Optional Mess',
+          meals: food.meals || [],
+          description: food.description || '',
+          timing: food.timing || '',
+        };
 
-      // Map food details
-      const food = row.food_details?.[0] || {};
-      const foodDetails = {
-        included: food.included || false,
-        type: food.food_type || 'Self Cooking / Optional Mess',
-        meals: food.meals || [],
-        description: food.description || '',
-        timing: food.timing || '',
-      };
+        // Map owner
+        const ownerData = row.owners || {};
+        const owner = {
+          id: ownerData.id || 'owner-unknown',
+          name: ownerData.name || 'Property Manager',
+          role: ownerData.role || 'Owner',
+          phone: ownerData.phone || 'N/A',
+          whatsapp: ownerData.whatsapp || 'N/A',
+          responseRate: ownerData.response_rate || 'Replies soon',
+          isVerified: ownerData.is_verified || false,
+          avatarUrl: ownerData.avatar_url || undefined,
+        };
 
-      // Map owner
-      const ownerData = row.owners || {};
-      const owner = {
-        id: ownerData.id || 'owner-unknown',
-        name: ownerData.name || 'Property Manager',
-        role: ownerData.role || 'Owner',
-        phone: ownerData.phone || 'N/A',
-        whatsapp: ownerData.whatsapp || 'N/A',
-        responseRate: ownerData.response_rate || 'Replies soon',
-        isVerified: ownerData.is_verified || false,
-        avatarUrl: ownerData.avatar_url || undefined,
-      };
+        // Map reviews
+        const reviews = (row.reviews || []).map((rev: any) => ({
+          id: rev.id,
+          propertyId: rev.property_id,
+          authorName: rev.author_name,
+          college: rev.college,
+          course: rev.course,
+          rating: rev.rating,
+          date: rev.date ? new Date(rev.date).toLocaleDateString() : 'Recently',
+          comment: rev.comment,
+          verifiedStay: rev.verified_stay,
+          helpfulCount: rev.helpful_count,
+        }));
 
-      // Map reviews
-      const reviews = (row.reviews || []).map((rev: any) => ({
-        id: rev.id,
-        propertyId: rev.property_id,
-        authorName: rev.author_name,
-        college: rev.college,
-        course: rev.course,
-        rating: rev.rating,
-        date: rev.date ? new Date(rev.date).toLocaleDateString() : 'Recently',
-        comment: rev.comment,
-        verifiedStay: rev.verified_stay,
-        helpfulCount: rev.helpful_count,
-      }));
+        // Fallback for rating/reviews if missing in db
+        const avgRating = reviews.length > 0 
+          ? reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length 
+          : (row.verification === 'demo' ? 4.5 : 4.0);
 
-      // Fallback for rating/reviews if missing in db
-      const avgRating = reviews.length > 0 
-        ? reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length 
-        : (row.verification === 'demo' ? 4.5 : 4.0);
+        // Images
+        const images = (row.property_images || []).sort((a: any, b: any) => a.display_order - b.display_order).map((i: any) => i.image_url);
+        const fallbackImages = [
+          'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1000&q=80',
+          'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1000&q=80',
+        ];
 
-      // Images
-      const images = (row.property_images || []).sort((a: any, b: any) => a.display_order - b.display_order).map((i: any) => i.image_url);
-      const fallbackImages = [
-        'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1000&q=80',
-        'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1000&q=80',
-      ];
+        const cityFallback = getCityCoordinates(row.city);
+        const propLat = row.latitude != null && !isNaN(Number(row.latitude)) && Number(row.latitude) !== 0
+          ? Number(row.latitude)
+          : cityFallback.lat;
+        const propLng = row.longitude != null && !isNaN(Number(row.longitude)) && Number(row.longitude) !== 0
+          ? Number(row.longitude)
+          : cityFallback.lng;
 
-      return {
-        id: row.id,
-        title: row.title,
-        type: row.type,
-        gender: row.gender,
-        tagline: row.tagline || '',
-        description: row.description || '',
-        address: row.address,
-        area: row.area,
-        city: row.city,
-        latitude: Number(row.latitude),
-        longitude: Number(row.longitude),
-        nearbyCollegeId: row.nearby_college_id,
-        nearbyCollegeName: row.colleges?.name,
-        distanceKm: undefined,
-        verified: row.verification === 'verified',
-        rating: Number(avgRating.toFixed(1)),
-        reviewCount: reviews.length > 0 ? reviews.length : 12,
-        startingRent: row.starting_rent,
-        deposit: row.deposit,
-        images: images.length > 0 ? images : fallbackImages,
-        rooms: mappedRooms,
-        amenities: amenities,
-        isFurnished: row.is_furnished,
-        isAvailableNow: row.is_available_now,
-        foodDetails,
-        houseRules: (row.house_rules || []).map((hr: any) => hr.rule),
-        owner,
-        reviews,
-        noticePeriodDays: row.notice_period_days,
-        gateClosingTime: row.gate_closing_time,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      };
-    });
+        return {
+          id: row.id,
+          title: row.title,
+          type: row.type,
+          gender: row.gender,
+          tagline: row.tagline || '',
+          description: row.description || '',
+          address: row.address,
+          area: row.area,
+          city: row.city,
+          latitude: propLat,
+          longitude: propLng,
+          googleMapUrl: row.source_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${row.title || ''}, ${row.area || ''}, ${row.city || ''}`)}`,
+          nearbyCollegeId: row.nearby_college_id,
+          nearbyCollegeName: row.colleges?.name,
+          distanceKm: undefined,
+          verified: row.verification === 'verified',
+          rating: Number(avgRating.toFixed(1)),
+          reviewCount: reviews.length > 0 ? reviews.length : 12,
+          startingRent: row.starting_rent,
+          deposit: row.deposit,
+          images: images.length > 0 ? images : fallbackImages,
+          rooms: mappedRooms,
+          amenities: amenities,
+          isFurnished: row.is_furnished,
+          isAvailableNow: row.is_available_now,
+          foodDetails,
+          houseRules: (row.house_rules || []).map((hr: any) => hr.rule),
+          owner,
+          reviews,
+          noticePeriodDays: row.notice_period_days,
+          gateClosingTime: row.gate_closing_time,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+        };
+      });
 
       cachedProperties = mappedProperties;
       lastFetch = Date.now();
-      return mappedProperties;
+      return mergeLocalReviews(mappedProperties);
     } catch (err) {
       console.error('Error in fetchAllProperties:', err);
-      if (!isSupabaseConfigured) {
-        return MOCK_PROPERTIES;
-      }
-      throw err;
+      if (cachedProperties) return mergeLocalReviews(cachedProperties);
+      return mergeLocalReviews(MOCK_PROPERTIES);
     } finally {
       inFlightFetchAll = null;
     }
@@ -262,11 +317,34 @@ async function fetchAllProperties(): Promise<Property[]> {
  */
 export async function getProperties(filters: FilterState = {}): Promise<PropertySearchResponse> {
   let results = await fetchAllProperties();
+  const activeColleges = await getColleges();
 
-  const searchLat = filters.lat;
-  const searchLng = filters.lng;
+  let searchLat = filters.lat;
+  let searchLng = filters.lng;
+  let matchedCollege: College | undefined = undefined;
 
-  // Compute dynamic distance if user searched a location or provided GPS coordinates
+  // Detect if search query matches any college name or shortcode (with spelling normalization, e.g. marvadi -> marwadi)
+  if (filters.query && filters.query.trim()) {
+    const qNorm = normalizeSearchText(filters.query);
+    matchedCollege = activeColleges.find((col) => {
+      const nameNorm = normalizeSearchText(col.name);
+      const shortNorm = col.shortName ? normalizeSearchText(col.shortName) : '';
+      return (
+        nameNorm === qNorm ||
+        nameNorm.includes(qNorm) ||
+        qNorm.includes(nameNorm) ||
+        (shortNorm && (shortNorm === qNorm || qNorm.includes(shortNorm)))
+      );
+    });
+
+    // Auto-assign college GPS coordinates if not explicitly passed
+    if (matchedCollege && (!searchLat || !searchLng)) {
+      searchLat = matchedCollege.latitude;
+      searchLng = matchedCollege.longitude;
+    }
+  }
+
+  // Compute dynamic distance if user searched a location, college, or provided GPS coordinates
   results = results.map((prop) => {
     let distanceKm: number | undefined = undefined;
     if (searchLat && searchLng) {
@@ -284,16 +362,31 @@ export async function getProperties(filters: FilterState = {}): Promise<Property
   // 1. Text search query (Colleges, Areas, Localities, Names)
   if (filters.query && filters.query.trim()) {
     const q = filters.query.toLowerCase().trim();
-    results = results.filter((prop) => {
-      return (
-        prop.title.toLowerCase().includes(q) ||
-        prop.area.toLowerCase().includes(q) ||
-        prop.address.toLowerCase().includes(q) ||
-        prop.city.toLowerCase().includes(q) ||
-        (prop.nearbyCollegeName && prop.nearbyCollegeName.toLowerCase().includes(q)) ||
-        prop.amenities.some((a: any) => a.toLowerCase().includes(q))
-      );
-    });
+    if (matchedCollege) {
+      // College-first search:
+      // CRITICAL: Filter properties to the same city as the college (or directly linked to the college)
+      // For instance, Marwadi University (Rajkot) must NEVER show properties in Vadodara or Ahmedabad!
+      results = results.filter((prop) => {
+        const sameCity = prop.city && prop.city.toLowerCase() === matchedCollege!.city.toLowerCase();
+        const directCollegeMatch = prop.nearbyCollegeName && (
+          normalizeSearchText(prop.nearbyCollegeName).includes(normalizeSearchText(matchedCollege!.name)) ||
+          normalizeSearchText(matchedCollege!.name).includes(normalizeSearchText(prop.nearbyCollegeName))
+        );
+
+        return sameCity || directCollegeMatch;
+      });
+    } else {
+      results = results.filter((prop) => {
+        return (
+          prop.title.toLowerCase().includes(q) ||
+          prop.area.toLowerCase().includes(q) ||
+          prop.address.toLowerCase().includes(q) ||
+          prop.city.toLowerCase().includes(q) ||
+          (prop.nearbyCollegeName && prop.nearbyCollegeName.toLowerCase().includes(q)) ||
+          prop.amenities.some((a: any) => a.toLowerCase().includes(q))
+        );
+      });
+    }
   }
 
   // 2. Gender filter
@@ -357,13 +450,18 @@ export async function getProperties(filters: FilterState = {}): Promise<Property
     results = results.filter((prop) => prop.verified);
   }
 
-  // 11. Sorting
-  const sortBy = filters.sortBy || 'relevance';
+  // 11. Sorting: If college or GPS location is active, default to distance: nearest first!
+  const isCollegeOrGpsSearch = Boolean(matchedCollege || (filters.lat && filters.lng));
+  const sortBy = filters.sortBy || (isCollegeOrGpsSearch ? 'distance' : 'relevance');
+
   results.sort((a: any, b: any) => {
-    if (sortBy === 'distance') {
+    if (sortBy === 'distance' || (isCollegeOrGpsSearch && sortBy === 'relevance')) {
       const distA = a.distanceKm ?? 999;
       const distB = b.distanceKm ?? 999;
-      return distA - distB;
+      if (Math.abs(distA - distB) > 0.05) {
+        return distA - distB;
+      }
+      return (b.rating || 0) - (a.rating || 0);
     }
     if (sortBy === 'price_low_high') {
       return a.startingRent - b.startingRent;
@@ -382,7 +480,7 @@ export async function getProperties(filters: FilterState = {}): Promise<Property
     properties: results,
     total: results.length,
     searchedLocation: {
-      name: filters.locationName || filters.query || 'Selected Area',
+      name: matchedCollege ? matchedCollege.name : (filters.locationName || filters.query || 'Selected Area'),
       latitude: searchLat,
       longitude: searchLng,
     },
@@ -454,36 +552,37 @@ export async function getPopularLocations(): Promise<LocationRef[]> {
 }
 
 export async function getColleges(): Promise<College[]> {
-  if (!isSupabaseConfigured) return MOCK_COLLEGES;
-  
-  try {
-    const { data, error } = await supabase.from('colleges').select('*');
-    if (error) {
-      console.error('Error fetching colleges from Supabase:', error.message);
-      throw new Error(`Failed to load colleges from Supabase: ${error.message}`);
-    }
+  if (isSupabaseConfigured && !isCollegesFetched && !isCollegesFetching) {
+    isCollegesFetching = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase.from('colleges').select('*');
+        if (!error && data && data.length > 0) {
+          const dbColleges: College[] = data.map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            city: c.city,
+            area: c.area,
+            latitude: Number(c.latitude),
+            longitude: Number(c.longitude),
+            shortName: c.short_name,
+            popularLandmark: c.popular_landmark,
+          }));
 
-    if (!data || data.length === 0) {
-      return [];
-    }
-    
-    return data.map(c => ({
-      id: c.id,
-      name: c.name,
-      city: c.city,
-      area: c.area,
-      latitude: Number(c.latitude),
-      longitude: Number(c.longitude),
-      shortName: c.short_name,
-      popularLandmark: c.popular_landmark
-    }));
-  } catch(e) {
-    console.error('Error in getColleges:', e);
-    if (!isSupabaseConfigured) {
-      return MOCK_COLLEGES;
-    }
-    throw e;
+          const seen = new Set(dbColleges.map((c) => c.name.toLowerCase()));
+          const extraMocks = MOCK_COLLEGES.filter((c) => !seen.has(c.name.toLowerCase()));
+          cachedColleges = [...dbColleges, ...extraMocks];
+          isCollegesFetched = true;
+        }
+      } catch (err) {
+        console.warn('Background colleges fetch error:', err);
+      } finally {
+        isCollegesFetching = false;
+      }
+    })();
   }
+
+  return cachedColleges;
 }
 
 /**
@@ -494,22 +593,28 @@ export async function searchLocations(query: string): Promise<LocationRef[]> {
   const activeColleges = await getColleges();
 
   if (!query || !query.trim()) {
-    return activeLocations.slice(0, 5);
+    // Show all colleges prominently first, then top student localities
+    const collegeRefs: LocationRef[] = activeColleges.map((col) => ({
+      id: `col-${col.id}`,
+      name: col.name,
+      area: col.area,
+      city: col.city,
+      latitude: col.latitude,
+      longitude: col.longitude,
+      type: 'college',
+      subtitle: `🎓 College / Campus in ${col.city} (${col.area})`,
+    }));
+    return [...collegeRefs, ...POPULAR_LOCATIONS.slice(0, 4)];
   }
   const q = query.toLowerCase().trim();
-
-  const matchedLocations = activeLocations.filter(
-    (loc) =>
-      loc.name.toLowerCase().includes(q) ||
-      loc.area.toLowerCase().includes(q) ||
-      loc.city.toLowerCase().includes(q)
-  );
+  const qNorm = normalizeSearchText(query);
 
   const matchedColleges = activeColleges.filter(
     (col) =>
-      col.name.toLowerCase().includes(q) ||
-      col.city.toLowerCase().includes(q) ||
-      col.area.toLowerCase().includes(q)
+      normalizeSearchText(col.name).includes(qNorm) ||
+      (col.shortName && normalizeSearchText(col.shortName).includes(qNorm)) ||
+      normalizeSearchText(col.city).includes(qNorm) ||
+      normalizeSearchText(col.area).includes(qNorm)
   ).map((col) => ({
     id: `col-${col.id}`,
     name: col.name,
@@ -518,10 +623,18 @@ export async function searchLocations(query: string): Promise<LocationRef[]> {
     latitude: col.latitude,
     longitude: col.longitude,
     type: 'college' as const,
-    subtitle: `College location reference in ${col.city}`,
+    subtitle: `🎓 College / Campus in ${col.city} (${col.area})`,
   }));
 
-  const combined = [...matchedLocations, ...matchedColleges];
+  const matchedLocations = POPULAR_LOCATIONS.filter(
+    (loc) =>
+      loc.name.toLowerCase().includes(q) ||
+      loc.area.toLowerCase().includes(q) ||
+      loc.city.toLowerCase().includes(q)
+  );
+
+  // Colleges first, then general localities
+  const combined = [...matchedColleges, ...matchedLocations];
   // Deduplicate by name
   const seen = new Set<string>();
   return combined.filter((item) => {
@@ -580,3 +693,67 @@ export async function submitEnquiry(enquiry: Omit<Enquiry, 'id' | 'status' | 'cr
 
   return { success: true, enquiry: newEnquiry };
 }
+
+/**
+ * Submit student rating & review with Supabase insert & localStorage sync
+ */
+export async function submitReview(review: {
+  propertyId: string;
+  authorName: string;
+  college: string;
+  course?: string;
+  rating: number;
+  comment: string;
+  verifiedStay?: boolean;
+}): Promise<Review> {
+  const newReview: Review = {
+    id: `rev-${Date.now()}`,
+    propertyId: review.propertyId,
+    authorName: review.authorName.trim(),
+    college: review.college.trim(),
+    course: review.course?.trim() || undefined,
+    rating: Math.min(5, Math.max(1, Math.round(review.rating * 10) / 10)),
+    comment: review.comment.trim(),
+    date: 'Just now',
+    verifiedStay: Boolean(review.verifiedStay),
+    helpfulCount: 0,
+  };
+
+  if (isSupabaseConfigured) {
+    try {
+      const { data, error } = await supabase.from('reviews').insert([{
+        property_id: review.propertyId,
+        author_name: newReview.authorName,
+        college: newReview.college,
+        course: newReview.course || null,
+        rating: newReview.rating,
+        comment: newReview.comment,
+        verified_stay: newReview.verifiedStay,
+        helpful_count: 0,
+      }]).select().single();
+
+      if (!error && data) {
+        newReview.id = data.id;
+        newReview.date = data.date ? new Date(data.date).toLocaleDateString() : 'Just now';
+      } else if (error) {
+        console.warn('Supabase review insert failed, using local store:', error.message);
+      }
+    } catch (err) {
+      console.warn('Could not insert review to Supabase:', err);
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    try {
+      const existing: Review[] = JSON.parse(localStorage.getItem('nestora_reviews') || '[]');
+      existing.unshift(newReview);
+      localStorage.setItem('nestora_reviews', JSON.stringify(existing));
+    } catch {
+      // ignore
+    }
+  }
+
+  invalidatePropertiesCache();
+  return newReview;
+}
+

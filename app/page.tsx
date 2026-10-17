@@ -17,7 +17,6 @@ import {
 import { HeroSearch } from '@/components/home/HeroSearch';
 import { Hero3DVisualizer } from '@/components/home/Hero3DVisualizer';
 import { PropertyCard } from '@/components/listings/PropertyCard';
-import { Tilt3D } from '@/components/ui/Tilt3D';
 import { getPopularLocations, getProperties } from '@/lib/api/properties';
 import { HomeAuthPrompt } from '@/components/home/HomeAuthPrompt';
 
@@ -54,7 +53,7 @@ export default async function HomePage() {
 
               {/* Main Heading (Requirement #2) */}
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-950 dark:text-white tracking-tight leading-[1.12] mb-4">
-                Find your perfect stay <span className="text-emerald-600 dark:text-emerald-400">near your college</span>
+                Find your perfect stay <span className="gradient-text-emerald">near your college</span>
               </h1>
 
               {/* Subheading */}
@@ -89,35 +88,27 @@ export default async function HomePage() {
           {/* Main Search Component */}
           <HeroSearch />
 
-          {/* Quick Value Props in 3D Glass Cards */}
+          {/* Quick Value Props in Glass Cards */}
           <div className="mt-10 max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-center">
-            <Tilt3D maxTilt={8} scale={1.03} enableGlare={false}>
-              <div className="glass-card card-3d-hover p-4 rounded-2xl flex items-center justify-center gap-2.5 h-full">
-                <Coins size={18} className="text-amber-500 shrink-0" />
-                <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">Zero Brokerage</span>
-              </div>
-            </Tilt3D>
+            <div className="glass-card hover:border-emerald-500/50 p-4 rounded-2xl flex items-center justify-center gap-2.5 h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10">
+              <Coins size={18} className="text-amber-500 shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">Zero Brokerage</span>
+            </div>
 
-            <Tilt3D maxTilt={8} scale={1.03} enableGlare={false}>
-              <div className="glass-card card-3d-hover p-4 rounded-2xl flex items-center justify-center gap-2.5 h-full">
-                <ShieldCheck size={18} className="text-emerald-500 shrink-0" />
-                <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">Verified Owners</span>
-              </div>
-            </Tilt3D>
+            <div className="glass-card hover:border-emerald-500/50 p-4 rounded-2xl flex items-center justify-center gap-2.5 h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10">
+              <ShieldCheck size={18} className="text-emerald-500 shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">Verified Owners</span>
+            </div>
 
-            <Tilt3D maxTilt={8} scale={1.03} enableGlare={false}>
-              <div className="glass-card card-3d-hover p-4 rounded-2xl flex items-center justify-center gap-2.5 h-full">
-                <Utensils size={18} className="text-teal-500 shrink-0" />
-                <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">Mess Details</span>
-              </div>
-            </Tilt3D>
+            <div className="glass-card hover:border-emerald-500/50 p-4 rounded-2xl flex items-center justify-center gap-2.5 h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10">
+              <Utensils size={18} className="text-teal-500 shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">Mess Details</span>
+            </div>
 
-            <Tilt3D maxTilt={8} scale={1.03} enableGlare={false}>
-              <div className="glass-card card-3d-hover p-4 rounded-2xl flex items-center justify-center gap-2.5 h-full">
-                <Wifi size={18} className="text-emerald-500 shrink-0" />
-                <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">High-Speed Wi-Fi</span>
-              </div>
-            </Tilt3D>
+            <div className="glass-card hover:border-emerald-500/50 p-4 rounded-2xl flex items-center justify-center gap-2.5 h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10">
+              <Wifi size={18} className="text-emerald-500 shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">High-Speed Wi-Fi</span>
+            </div>
           </div>
 
         </div>
@@ -147,28 +138,27 @@ export default async function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {popularLocations.slice(0, 4).map((loc) => (
-              <Tilt3D key={loc.id} maxTilt={8} scale={1.02} enableGlare={true}>
-                <Link
-                  href={`/search?q=${encodeURIComponent(loc.name)}&lat=${loc.latitude}&lng=${loc.longitude}`}
-                  className="group glass-card card-3d-hover hover:border-emerald-500/40 p-5 rounded-3xl transition-all duration-300 flex flex-col justify-between h-full md:preserve-3d"
-                >
-                  <div className="md:preserve-3d">
-                    <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-sm mb-3 group-hover:scale-110 transition-transform md:translate-z-20">
-                      <MapPin size={20} />
-                    </div>
-                    <h3 className="font-bold text-slate-900 dark:text-white text-base group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                      {loc.name}
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
-                      {loc.subtitle || `Student hub in ${loc.city}`}
-                    </p>
+              <Link
+                key={loc.id}
+                href={`/search?q=${encodeURIComponent(loc.name)}&lat=${loc.latitude}&lng=${loc.longitude}`}
+                className="group glass-card hover:border-emerald-500/50 dark:hover:border-emerald-500/60 p-5 rounded-3xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-emerald-500/10 flex flex-col justify-between h-full relative overflow-hidden"
+              >
+                <div>
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-sm mb-3 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
+                    <MapPin size={20} />
                   </div>
-                  <div className="mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-800/60 flex items-center justify-between text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                    <span>Explore nearby PGs</span>
-                    <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-              </Tilt3D>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    {loc.name}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                    {loc.subtitle || `Student hub in ${loc.city}`}
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-800/60 flex items-center justify-between text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  <span>Explore nearby PGs</span>
+                  <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -251,15 +241,16 @@ export default async function HomePage() {
                 desc: 'Connect via WhatsApp, direct call, or enquiry form with zero broker commission.',
               },
             ].map((item) => (
-              <Tilt3D key={item.step} maxTilt={8} scale={1.02} enableGlare={true}>
-                <div className="p-6 rounded-3xl glass-card card-3d-hover relative h-full md:preserve-3d">
-                  <div className="text-3xl font-black text-emerald-600/40 dark:text-emerald-400/40 mb-3 font-mono md:translate-z-20">
-                    {item.step}
-                  </div>
-                  <h3 className="font-bold text-slate-900 dark:text-white text-base mb-1.5">{item.title}</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{item.desc}</p>
+              <div
+                key={item.step}
+                className="p-6 rounded-3xl glass-card hover:border-emerald-500/50 dark:hover:border-emerald-500/60 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-emerald-500/10 relative h-full flex flex-col"
+              >
+                <div className="text-3xl font-black text-emerald-600/40 dark:text-emerald-400/40 mb-3 font-mono">
+                  {item.step}
                 </div>
-              </Tilt3D>
+                <h3 className="font-bold text-slate-900 dark:text-white text-base mb-1.5">{item.title}</h3>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{item.desc}</p>
+              </div>
             ))}
           </div>
         </div>

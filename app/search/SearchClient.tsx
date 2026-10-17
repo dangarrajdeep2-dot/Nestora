@@ -1,7 +1,7 @@
 'use client';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useRef, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   SlidersHorizontal, 
@@ -12,10 +12,12 @@ import {
   X, 
   ArrowUpDown, 
   Navigation,
-  Loader2
+  Loader2,
+  GraduationCap,
+  MapPin
 } from 'lucide-react';
-import { FilterState, Property } from '@/types';
-import { getProperties } from '@/lib/api/properties';
+import { FilterState, Property, LocationRef } from '@/types';
+import { getProperties, searchLocations } from '@/lib/api/properties';
 import { PropertyCard } from '@/components/listings/PropertyCard';
 import { FilterSidebar } from '@/components/listings/FilterSidebar';
 import dynamic from 'next/dynamic';
@@ -37,15 +39,17 @@ export function SearchClient() {
   const initialLat = searchParams.get('lat') ? parseFloat(searchParams.get('lat')!) : undefined;
   const initialLng = searchParams.get('lng') ? parseFloat(searchParams.get('lng')!) : undefined;
   const initialGender = (searchParams.get('gender') as 'boys' | 'girls' | 'all') || 'all';
+  const initialSortBy = (searchParams.get('sortBy') as any) || (initialLat && initialLng ? 'distance' : 'relevance');
 
   const [filters, setFilters] = useState<FilterState>({
     query: initialQuery,
     lat: initialLat,
     lng: initialLng,
     gender: initialGender,
-    sortBy: 'relevance',
+    sortBy: initialSortBy,
   });
 
+  const [searchInput, setSearchInput] = useState(initialQuery);
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -55,6 +59,11 @@ export function SearchClient() {
   const [showLocationDeniedBanner, setShowLocationDeniedBanner] = useState(false);
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
 
+  // Autocomplete suggestions for colleges & locations on search page
+  const [suggestions, setSuggestions] = useState<LocationRef[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   // Sync with searchParams on load or navigation
   useEffect(() => {
     const q = searchParams.get('q') || '';
@@ -62,25 +71,24 @@ export function SearchClient() {
     const lng = searchParams.get('lng') ? parseFloat(searchParams.get('lng')!) : undefined;
     const gender = (searchParams.get('gender') as 'boys' | 'girls' | 'all') || 'all';
 
-    Promise.resolve().then(() => {
-      setFilters((prev) => {
-        if (
-          prev.query === q &&
-          prev.lat === lat &&
-          prev.lng === lng &&
-          prev.gender === gender
-        ) {
-          return prev;
-        }
-        return {
-          ...prev,
-          query: q,
-          lat,
-          lng,
-          gender,
-        };
-      });
+    setFilters((prev) => {
+      if (
+        prev.query === q &&
+        prev.lat === lat &&
+        prev.lng === lng &&
+        prev.gender === gender
+      ) {
+        return prev;
+      }
+      return {
+        ...prev,
+        query: q,
+        lat,
+        lng,
+        gender,
+      };
     });
+    setSearchInput(q);
   }, [searchParams]);
 
   // Fetch properties when filters change
@@ -101,162 +109,341 @@ export function SearchClient() {
   };
 
   useEffect(() => {
-    Promise.resolve().then(() => {
-      fetchListingData();
-    });
+    fetchListingData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
-  const handleUseCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      setShowLocationDeniedBanner(true);
-      return;
-    }
-    setIsDetectingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setIsDetectingLocation(false);
-        setFilters((prev) => ({
+  // Debounced update from searchInput to filters.query so typing never freezes the UI
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters((prev) => {
+        if (prev.query === searchInput) return prev;
+        return {
           ...prev,
-          query: 'Near My Location',
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          sortBy: 'distance',
-        }));
-        setShowLocationDeniedBanner(false);
-      },
-      (err) => {
-        setIsDetectingLocation(false);
+          query: searchInput,
+          lat: searchInput === '' ? undefined : prev.lat,
+          lng: searchInput === '' ? undefined : prev.lng,
+        };
+      });
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Instant autocomplete lookup using cached colleges
+  useEffect(() => {
+    let active = true;
+    searchLocations(searchInput).then((results) => {
+      if (active) setSuggestions(results);
+    }).catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [searchInput]);
+
+    // Click outside listener for dropdown
+    useEffect(() => {
+      const handleClickOutside = (e: MouseEvent) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+          setShowSuggestions(false);
+        }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleSelectSuggestion = (loc: LocationRef) => {
+      setShowSuggestions(false);
+      setSearchInput(loc.name);
+      setFilters((prev) => ({
+        ...prev,
+        query: loc.name,
+        lat: loc.latitude,
+        lng: loc.longitude,
+        sortBy: 'distance',
+      }));
+
+      const params = new URLSearchParams();
+      params.set('q', loc.name);
+      if (loc.latitude && loc.longitude) {
+        params.set('lat', loc.latitude.toString());
+        params.set('lng', loc.longitude.toString());
+      }
+      params.set('sortBy', 'distance');
+      if (filters.gender && filters.gender !== 'all') params.set('gender', filters.gender);
+      router.replace(`/search?${params.toString()}`);
+    };
+
+    const handleSearchKeyDown = async (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        setShowSuggestions(false);
+        const trimmed = searchInput.trim();
+        if (!trimmed) return;
+
+        const results = await searchLocations(trimmed);
+        const match = results.find(
+          (r) =>
+            r.name.toLowerCase() === trimmed.toLowerCase() ||
+            r.name.toLowerCase().includes(trimmed.toLowerCase()) ||
+            trimmed.toLowerCase().includes(r.name.toLowerCase())
+        );
+
+        if (match && match.latitude && match.longitude) {
+          setSearchInput(match.name);
+          setFilters((prev) => ({
+            ...prev,
+            query: match.name,
+            lat: match.latitude,
+            lng: match.longitude,
+            sortBy: 'distance',
+          }));
+          const params = new URLSearchParams();
+          params.set('q', match.name);
+          params.set('lat', match.latitude.toString());
+          params.set('lng', match.longitude.toString());
+          params.set('sortBy', 'distance');
+          if (filters.gender && filters.gender !== 'all') params.set('gender', filters.gender);
+          router.replace(`/search?${params.toString()}`);
+        } else {
+          setFilters((prev) => ({ ...prev, query: trimmed, sortBy: 'distance' }));
+          const params = new URLSearchParams();
+          params.set('q', trimmed);
+          params.set('sortBy', 'distance');
+          if (filters.gender && filters.gender !== 'all') params.set('gender', filters.gender);
+          router.replace(`/search?${params.toString()}`);
+        }
+      }
+    };
+
+    const handleUseCurrentLocation = () => {
+      if (!navigator.geolocation) {
         setShowLocationDeniedBanner(true);
-      },
-      { timeout: 7000 }
-    );
-  };
+        return;
+      }
+      setIsDetectingLocation(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setIsDetectingLocation(false);
+          const locName = 'Near My Location';
+          setSearchInput(locName);
+          setFilters((prev) => ({
+            ...prev,
+            query: locName,
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            sortBy: 'distance',
+          }));
+          setShowLocationDeniedBanner(false);
+          const params = new URLSearchParams();
+          params.set('q', locName);
+          params.set('lat', pos.coords.latitude.toString());
+          params.set('lng', pos.coords.longitude.toString());
+          params.set('sortBy', 'distance');
+          if (filters.gender && filters.gender !== 'all') params.set('gender', filters.gender);
+          router.replace(`/search?${params.toString()}`);
+        },
+        (err) => {
+          setIsDetectingLocation(false);
+          setShowLocationDeniedBanner(true);
+        },
+        { timeout: 7000, enableHighAccuracy: true }
+      );
+    };
 
-  const handleResetFilters = () => {
-    setFilters({
-      query: '',
-      lat: undefined,
-      lng: undefined,
-      gender: 'all',
-      propertyType: undefined,
-      minPrice: undefined,
-      maxPrice: undefined,
-      maxDistanceKm: undefined,
-      sharing: undefined,
-      amenities: undefined,
-      furnishedOnly: false,
-      availableNowOnly: false,
-      verifiedOnly: false,
-      sortBy: 'relevance',
-    });
-  };
+    const handleResetFilters = () => {
+      setSearchInput('');
+      setFilters({
+        query: '',
+        lat: undefined,
+        lng: undefined,
+        gender: 'all',
+        propertyType: undefined,
+        minPrice: undefined,
+        maxPrice: undefined,
+        maxDistanceKm: undefined,
+        sharing: undefined,
+        amenities: undefined,
+        furnishedOnly: false,
+        availableNowOnly: false,
+        verifiedOnly: false,
+        sortBy: 'relevance',
+      });
+      setShowSuggestions(false);
+      router.replace('/search');
+    };
 
-  // Determine active filter count for badge
-  let activeFilterCount = 0;
-  if (filters.gender && filters.gender !== 'all') activeFilterCount++;
-  if (filters.propertyType && filters.propertyType.length > 0) activeFilterCount += filters.propertyType.length;
-  if (filters.maxDistanceKm) activeFilterCount++;
-  if (filters.minPrice || filters.maxPrice) activeFilterCount++;
-  if (filters.sharing && filters.sharing.length > 0) activeFilterCount += filters.sharing.length;
-  if (filters.amenities && filters.amenities.length > 0) activeFilterCount += filters.amenities.length;
-  if (filters.furnishedOnly) activeFilterCount++;
-  if (filters.availableNowOnly) activeFilterCount++;
-  if (filters.verifiedOnly) activeFilterCount++;
+    // Determine active filter count for badge
+    let activeFilterCount = 0;
+    if (filters.gender && filters.gender !== 'all') activeFilterCount++;
+    if (filters.propertyType && filters.propertyType.length > 0) activeFilterCount += filters.propertyType.length;
+    if (filters.maxDistanceKm) activeFilterCount++;
+    if (filters.minPrice || filters.maxPrice) activeFilterCount++;
+    if (filters.sharing && filters.sharing.length > 0) activeFilterCount += filters.sharing.length;
+    if (filters.amenities && filters.amenities.length > 0) activeFilterCount += filters.amenities.length;
+    if (filters.furnishedOnly) activeFilterCount++;
+    if (filters.availableNowOnly) activeFilterCount++;
+    if (filters.verifiedOnly) activeFilterCount++;
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-24 sm:pb-12">
-      
-      {/* Glassy Search Bar & Location Header */}
-      <div className="glass-card rounded-3xl p-4 sm:p-5 border border-slate-200/60 dark:border-slate-800/80 mb-6">
-        <div className="flex flex-col md:flex-row items-stretch gap-3">
-          
-          {/* Query input */}
-          <div className="relative flex-1">
-            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-            <input
-              type="text"
-              value={filters.query || ''}
-              onChange={(e) => setFilters((prev) => ({ ...prev, query: e.target.value }))}
-              placeholder="Search college, area, or locality (e.g. Kotecha Chowk, Rajkot)"
-              className="w-full pl-10 pr-24 py-3 rounded-2xl bg-white/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 text-slate-900 dark:text-white text-sm outline-none transition"
-            />
-            {filters.query && (
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-24 sm:pb-12">
+        
+        {/* Glassy Search Bar & Location Header */}
+        <div className="glass-card rounded-3xl p-4 sm:p-5 border border-slate-200/60 dark:border-slate-800/80 mb-6">
+          <div className="flex flex-col md:flex-row items-stretch gap-3">
+            
+            {/* Query input with College Autocomplete & GPS */}
+            <div className="relative flex-1" ref={dropdownRef}>
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-400">
+                <GraduationCap size={19} />
+              </div>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => {
+                  setSearchInput(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onKeyDown={handleSearchKeyDown}
+                placeholder="Enter your college (e.g. Marwadi University, RK University, Saurashtra University...)"
+                className="w-full pl-10 pr-28 py-3 rounded-2xl bg-white/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 text-slate-900 dark:text-white text-sm outline-none transition"
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchInput('');
+                    setFilters((prev) => ({ ...prev, query: '', lat: undefined, lng: undefined, sortBy: 'relevance' }));
+                    setShowSuggestions(false);
+                    router.replace('/search');
+                  }}
+                  className="absolute right-24 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  Clear
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => setFilters((prev) => ({ ...prev, query: '' }))}
-                className="absolute right-20 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                onClick={handleUseCurrentLocation}
+                disabled={isDetectingLocation}
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-xl flex items-center gap-1 transition border border-emerald-500/20 active:scale-95"
+                title="Find stays near my current GPS location"
               >
-                Clear
+                {isDetectingLocation ? (
+                  <Loader2 size={12} className="animate-spin text-emerald-600 dark:text-emerald-400" />
+                ) : (
+                  <Navigation size={12} className="text-emerald-600 dark:text-emerald-400" />
+                )}
+                <span>GPS</span>
               </button>
-            )}
+
+              {/* Autocomplete Dropdown: Colleges First */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-slate-200/80 dark:border-slate-800 py-2 z-50 max-h-72 overflow-y-auto">
+                  <div className="px-4 py-1.5 text-[11px] font-bold uppercase text-emerald-600 dark:text-emerald-400 tracking-wider flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 mb-1">
+                    <span className="flex items-center gap-1.5">
+                      <GraduationCap size={13} />
+                      <span>Suggested Colleges & Locations</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-normal">Nearest stays show first</span>
+                  </div>
+                  {suggestions.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleSelectSuggestion(item)}
+                      className="w-full text-left px-4 py-2 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/15 flex items-center justify-between gap-3 transition group"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                          item.type === 'college'
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                        }`}>
+                          {item.type === 'college' ? <GraduationCap size={16} /> : <MapPin size={15} />}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
+                            {item.name}
+                          </div>
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                            {item.subtitle || `${item.area}, ${item.city}`}
+                          </div>
+                        </div>
+                      </div>
+                      <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        item.type === 'college'
+                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                          : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                      }`}>
+                        {item.type === 'college' ? '🎓 College' : '📍 Area'}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Gender Selector in header */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100/80 dark:bg-slate-900/80 rounded-2xl shrink-0 border border-slate-200/50 dark:border-slate-800/60">
+              {(['all', 'boys', 'girls'] as const).map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => setFilters((prev) => ({ ...prev, gender: g }))}
+                  className={`px-3 py-2 text-xs font-semibold rounded-xl capitalize transition ${
+                    filters.gender === g 
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm font-bold' 
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  {g === 'all' ? 'All Stays' : g}
+                </button>
+              ))}
+            </div>
+
+            {/* Mobile Filter Sheet Trigger Button */}
             <button
               type="button"
-              onClick={handleUseCurrentLocation}
-              disabled={isDetectingLocation}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-xl flex items-center gap-1 transition border border-emerald-500/20"
+              onClick={() => setIsMobileFilterOpen(true)}
+              className="md:hidden flex items-center justify-center gap-2 py-3 px-4 bg-emerald-600 text-white rounded-2xl text-xs font-bold shadow-md shadow-emerald-600/20"
             >
-              {isDetectingLocation ? (
-                <Loader2 size={12} className="animate-spin text-emerald-600 dark:text-emerald-400" />
-              ) : (
-                <Navigation size={12} className="text-emerald-600 dark:text-emerald-400" />
-              )}
-              <span>GPS</span>
+              <SlidersHorizontal size={14} />
+              <span>Filters ({activeFilterCount})</span>
             </button>
+
           </div>
+        </div>
 
-          {/* Gender Selector in header */}
-          <div className="flex items-center gap-1 p-1 bg-slate-100/80 dark:bg-slate-900/80 rounded-2xl shrink-0 border border-slate-200/50 dark:border-slate-800/60">
-            {(['all', 'boys', 'girls'] as const).map((g) => (
-              <button
-                key={g}
-                type="button"
-                onClick={() => setFilters((prev) => ({ ...prev, gender: g }))}
-                className={`px-3 py-2 text-xs font-semibold rounded-xl capitalize transition ${
-                  filters.gender === g 
-                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm font-bold' 
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                {g === 'all' ? 'All Stays' : g}
-              </button>
-            ))}
+        {/* Geolocation Denied Banner (Requirement #9) */}
+        {showLocationDeniedBanner && (
+          <LocationDeniedBanner
+            onDismiss={() => setShowLocationDeniedBanner(false)}
+            onSelectManual={(area) => {
+              setFilters((prev) => ({ ...prev, query: area, lat: undefined, lng: undefined, sortBy: 'distance' }));
+              setShowLocationDeniedBanner(false);
+            }}
+          />
+        )}
+
+        {/* Results Header: Count, Sort Dropdown, View Switcher & Map Toggle */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 gap-4 border-b border-slate-200/60 dark:border-slate-800/80">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                {filters.query ? `Stays near "${filters.query}"` : 'Student Accommodations'}
+              </h1>
+              {filters.sortBy === 'distance' && (
+                <span className="text-[11px] font-bold bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+                  📍 Nearest First
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {isLoading ? 'Searching verified stays...' : `${properties.length} properties available near you`}
+            </p>
           </div>
-
-          {/* Mobile Filter Sheet Trigger Button */}
-          <button
-            type="button"
-            onClick={() => setIsMobileFilterOpen(true)}
-            className="md:hidden flex items-center justify-center gap-2 py-3 px-4 bg-emerald-600 text-white rounded-2xl text-xs font-bold shadow-md shadow-emerald-600/20"
-          >
-            <SlidersHorizontal size={14} />
-            <span>Filters ({activeFilterCount})</span>
-          </button>
-
-        </div>
-      </div>
-
-      {/* Geolocation Denied Banner (Requirement #9) */}
-      {showLocationDeniedBanner && (
-        <LocationDeniedBanner
-          onDismiss={() => setShowLocationDeniedBanner(false)}
-          onSelectManual={(area) => {
-            setFilters((prev) => ({ ...prev, query: area, lat: undefined, lng: undefined }));
-            setShowLocationDeniedBanner(false);
-          }}
-        />
-      )}
-
-      {/* Results Header: Count, Sort Dropdown, View Switcher & Map Toggle */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 gap-4 border-b border-slate-200/60 dark:border-slate-800/80">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-            {filters.query ? `Stays near "${filters.query}"` : 'Student Accommodations'}
-          </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            {isLoading ? 'Searching verified stays...' : `${properties.length} properties available near you`}
-          </p>
-        </div>
 
         {/* View mode, Sort & Map controls */}
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -316,6 +503,39 @@ export function SearchClient() {
 
         </div>
       </div>
+
+      {/* Active College / Search Distance Notice Banner */}
+      {filters.query && (
+        <div className="bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 rounded-2xl p-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <GraduationCap size={22} />
+            </div>
+            <div>
+              <div className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+                <span>Stays near &quot;{filters.query}&quot;</span>
+                <span className="text-[10px] font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full shadow-sm">
+                  📍 Nearest First
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                Sabhi PGs aur hostels &quot;{filters.query}&quot; se distance ke hisab se sorted hain (sabse kam doori wale pehle).
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setFilters((prev) => ({ ...prev, query: '', lat: undefined, lng: undefined, sortBy: 'relevance' }));
+              setShowSuggestions(false);
+              router.replace('/search');
+            }}
+            className="text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 px-3.5 py-2 rounded-xl transition self-start sm:self-auto cursor-pointer"
+          >
+            Clear Filter (Show All Stays)
+          </button>
+        </div>
+      )}
 
       {/* Active Filter Badges Row */}
       {activeFilterCount > 0 && (
@@ -415,7 +635,12 @@ export function SearchClient() {
               }`}
             >
               {properties.map((prop) => (
-                <PropertyCard key={prop.id} property={prop} viewMode={viewMode} />
+                <PropertyCard 
+                  key={prop.id} 
+                  property={prop} 
+                  viewMode={viewMode} 
+                  referenceLocation={filters.query} 
+                />
               ))}
             </div>
           )}

@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { LayoutDashboard, Building2, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Building2, ArrowLeft, ShieldCheck, Star } from 'lucide-react';
 
 export default function AdminLayout({
   children,
@@ -88,7 +88,7 @@ export default function AdminLayout({
               />
             </div>
             <div>
-              <span className="text-xl font-black text-white tracking-tight group-hover:text-emerald-400 transition-colors">
+              <span className="text-xl font-black bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-300 bg-clip-text text-transparent tracking-tight">
                 Nestora
               </span>
             </div>
@@ -102,17 +102,36 @@ export default function AdminLayout({
         <nav className="flex-1 p-4 space-y-1.5">
           <Link
             href="/admin"
-            className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800 transition"
+            className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
+              pathname === '/admin'
+                ? 'bg-emerald-500/15 text-white border border-emerald-500/30'
+                : 'text-slate-300 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800'
+            }`}
           >
             <LayoutDashboard size={16} className="text-emerald-400" />
             <span>Dashboard</span>
           </Link>
           <Link
             href="/admin/properties"
-            className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800 transition"
+            className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
+              pathname.startsWith('/admin/properties')
+                ? 'bg-emerald-500/15 text-white border border-emerald-500/30'
+                : 'text-slate-300 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800'
+            }`}
           >
             <Building2 size={16} className="text-emerald-400" />
             <span>Properties</span>
+          </Link>
+          <Link
+            href="/admin/reviews"
+            className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
+              pathname.startsWith('/admin/reviews')
+                ? 'bg-amber-500/15 text-white border border-amber-500/30'
+                : 'text-slate-300 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800'
+            }`}
+          >
+            <Star size={16} className="text-amber-400 fill-amber-400" />
+            <span>Ratings & Reviews</span>
           </Link>
         </nav>
 
