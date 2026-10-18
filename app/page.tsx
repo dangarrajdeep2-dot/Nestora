@@ -18,6 +18,7 @@ import { HeroSearch } from '@/components/home/HeroSearch';
 import { Hero3DVisualizer } from '@/components/home/Hero3DVisualizer';
 import { PropertyCard } from '@/components/listings/PropertyCard';
 import { getPopularLocations, getProperties } from '@/lib/api/properties';
+import { HomeAuthPrompt } from '@/components/home/HomeAuthPrompt';
 
 export const revalidate = 60; // Refresh data periodically
 
@@ -30,6 +31,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <HomeAuthPrompt />
       
       {/* 1. Hero Section with Emerald Glass Glow */}
       <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50/60 via-slate-50/40 to-transparent dark:from-emerald-950/20 dark:via-slate-950/40 dark:to-slate-950 pt-8 sm:pt-14 pb-16 sm:pb-24 border-b border-slate-200/50 dark:border-slate-800/60">

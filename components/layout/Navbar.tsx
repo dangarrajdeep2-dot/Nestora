@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -12,23 +12,152 @@ import {
   Home, 
   Sun,
   Moon,
-  Sparkles
+  Sparkles,
+  LogOut
 } from 'lucide-react';
 import { useSavedProperties } from '@/lib/utils/favorites';
 import { useTheme } from '@/lib/utils/theme';
 import { ListPropertyModal } from '@/components/property/ListPropertyModal';
+import { AuthModal } from '@/components/auth/AuthModal';
+import { supabase } from '@/lib/supabase/client';
+import { signOutStudentAction } from '@/lib/actions/userAuth';
+import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 
 export function Navbar() {
   const pathname = usePathname();
   const { count: savedCount } = useSavedProperties();
   const { theme, toggleTheme } = useTheme();
   const [isListModalOpen, setIsListModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<SupabaseAuthUser | null>(null);
+  const [currentProfile, setCurrentProfile] = useState<{ name?: string } | null>(null);
+
+  const syncAuthState = useCallback(async () => {
+    try {
+      const authPromise = supabase.auth.getUser();
+      const authTimeout = new Promise<{ data: { user: null }; error: Error }>((resolve) =>
+        setTimeout(() => resolve({ data: { user: null }, error: new Error('Auth timeout') }), 4000)
+      );
+      const { data: { user } } = await Promise.race([authPromise, authTimeout]);
+
+      if (!user) {
+        setCurrentUser(null);
+        setCurrentProfile(null);
+        return;
+      }
+
+      // Check if this user is an administrator; admins must not appear as students in the student navbar
+      const adminPromise = supabase
+        .from('admin_users')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+      const adminTimeout = new Promise<{ data: null }>((resolve) =>
+        setTimeout(() => resolve({ data: null }), 3000)
+      );
+      const { data: adminRecord } = await Promise.race([adminPromise, adminTimeout]);
+
+      if (adminRecord) {
+        setCurrentUser(null);
+        setCurrentProfile(null);
+        return;
+      }
+
+      setCurrentUser(user);
+
+      // Fetch student's profile name from public.users
+      const profilePromise = supabase
+        .from('users')
+        .select('name')
+        .eq('id', user.id)
+        .maybeSingle();
+      const profileTimeout = new Promise<{ data: null }>((resolve) =>
+        setTimeout(() => resolve({ data: null }), 3000)
+      );
+      const { data: profile } = await Promise.race([profilePromise, profileTimeout]);
+
+      if (profile?.name) {
+        setCurrentProfile(profile);
+      } else if (user.user_metadata?.name || user.user_metadata?.full_name) {
+        setCurrentProfile({ name: user.user_metadata.name || user.user_metadata.full_name });
+      } else {
+        setCurrentProfile(null);
+      }
+    } catch (err) {
+      console.error('Navbar sync error:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      syncAuthState();
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session?.user) {
+        setCurrentUser(null);
+        setCurrentProfile(null);
+      } else if (session?.user) {
+        syncAuthState();
+      }
+    });
+
+    const handleProfileUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ name?: string }>;
+      if (customEvent.detail?.name) {
+        setCurrentProfile({ name: customEvent.detail.name });
+      } else {
+        syncAuthState();
+      }
+    };
+
+    const handleAuthChange = () => {
+      syncAuthState();
+    };
+
+    const handleFocus = () => {
+      syncAuthState();
+    };
+
+    const handleOpenAuthModal = () => {
+      setIsAuthModalOpen(true);
+    };
+
+    window.addEventListener('nestora_profile_updated', handleProfileUpdate);
+    window.addEventListener('nestora_auth_changed', handleAuthChange);
+    window.addEventListener('nestora_open_auth_modal', handleOpenAuthModal);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('nestora_profile_updated', handleProfileUpdate);
+      window.removeEventListener('nestora_auth_changed', handleAuthChange);
+      window.removeEventListener('nestora_open_auth_modal', handleOpenAuthModal);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [pathname, syncAuthState]);
+
+  const handleSignOut = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Sign out error on client:', err);
+    }
+    setCurrentUser(null);
+    setCurrentProfile(null);
+    window.dispatchEvent(new CustomEvent('nestora_auth_changed'));
+    await signOutStudentAction();
+  };
+
+  const displayName = currentProfile?.name || currentUser?.user_metadata?.name || currentUser?.user_metadata?.full_name || 'Profile';
+  const firstName = displayName.split(' ')[0];
 
   return (
     <>
       {/* Desktop Header */}
       <header className="sticky top-0 z-30 transition-all duration-300 bg-white/75 dark:bg-slate-950/75 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/70 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           
           {/* Logo & Brand with Uploaded Icon */}
           <Link href="/" className="flex items-center gap-2.5 group">
@@ -122,42 +251,71 @@ export function Navbar() {
               <span>List Property</span>
             </button>
 
-            {/* Profile CTA */}
-            <Link
-              href="/profile"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 transition-all active:scale-95 shadow-md shadow-emerald-500/25"
-            >
-              <User size={14} />
-              <span>Profile</span>
-            </Link>
+            {/* Auth CTA: Dynamic Student Session State */}
+            {currentUser ? (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/profile"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-bold text-white bg-slate-900 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all active:scale-95 shadow-md shadow-emerald-500/10"
+                >
+                  <User size={14} />
+                  <span>{firstName}</span>
+                </Link>
+                <form onSubmit={handleSignOut} action={signOutStudentAction}>
+                  <button
+                    type="submit"
+                    aria-label="Sign out"
+                    title="Sign Out"
+                    className="p-2 rounded-2xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 dark:hover:bg-rose-500/20 transition cursor-pointer"
+                  >
+                    <LogOut size={16} />
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/login"
+                  className="px-3.5 py-2 rounded-2xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-bold text-white bg-slate-900 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all active:scale-95 shadow-md shadow-emerald-500/10"
+                >
+                  <span>Sign Up</span>
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Mobile Header Right */}
-          <div className="flex md:hidden items-center gap-2">
+          <div className="flex md:hidden items-center gap-1.5 sm:gap-2 shrink-0">
             
             {/* Mobile Theme Toggle */}
             <button
               type="button"
               onClick={toggleTheme}
               aria-label="Toggle theme"
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-800"
+              className="p-1.5 sm:p-2 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-800"
             >
               {theme === 'dark' ? (
-                <Sun size={16} className="text-amber-400" />
+                <Sun size={15} className="text-amber-400" />
               ) : (
-                <Moon size={16} className="text-slate-700" />
+                <Moon size={15} className="text-slate-700" />
               )}
             </button>
 
             {/* Mobile Saved Heart */}
             <Link
               href="/saved"
-              className="relative p-2 text-slate-700 dark:text-slate-300 hover:text-rose-500"
+              className="relative p-1.5 sm:p-2 text-slate-700 dark:text-slate-300 hover:text-rose-500"
               aria-label="Saved properties"
             >
-              <Heart size={19} className={savedCount > 0 ? 'fill-rose-500 text-rose-500' : ''} />
+              <Heart size={18} className={savedCount > 0 ? 'fill-rose-500 text-rose-500' : ''} />
               {savedCount > 0 && (
-                <span className="absolute top-1 right-1 bg-rose-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute top-0.5 right-0.5 bg-rose-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {savedCount}
                 </span>
               )}
@@ -166,10 +324,21 @@ export function Navbar() {
             {/* Mobile List Stay */}
             <button
               onClick={() => setIsListModalOpen(true)}
-              className="text-[11px] font-bold px-2.5 py-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 rounded-xl border border-emerald-500/20"
+              className="text-[11px] font-bold px-2 sm:px-2.5 py-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 rounded-xl border border-emerald-500/20 whitespace-nowrap"
             >
               + List Stay
             </button>
+
+            {/* Mobile Sign In Button (When signed out) */}
+            {!currentUser && (
+              <button
+                type="button"
+                onClick={() => setIsAuthModalOpen(true)}
+                className="text-[11px] font-bold px-2.5 py-1.5 bg-slate-900 dark:bg-emerald-600 text-white rounded-xl shadow-sm transition active:scale-95 cursor-pointer"
+              >
+                Sign In
+              </button>
+            )}
           </div>
 
         </div>
@@ -222,17 +391,32 @@ export function Navbar() {
             <span className="text-[10px]">Saved</span>
           </Link>
 
-          <Link
-            href="/profile"
-            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition ${
-              pathname === '/profile' 
-                ? 'text-emerald-600 dark:text-emerald-400 font-bold' 
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-            }`}
-          >
-            <User size={19} />
-            <span className="text-[10px]">Profile</span>
-          </Link>
+          {currentUser ? (
+            <Link
+              href="/profile"
+              className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition ${
+                pathname === '/profile' 
+                  ? 'text-emerald-600 dark:text-emerald-400 font-bold' 
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              <User size={19} />
+              <span className="text-[10px]">{firstName}</span>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsAuthModalOpen(true)}
+              className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition cursor-pointer ${
+                pathname === '/profile' 
+                  ? 'text-emerald-600 dark:text-emerald-400 font-bold' 
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              <User size={19} />
+              <span className="text-[10px]">Sign In</span>
+            </button>
+          )}
 
         </div>
       </nav>
@@ -241,6 +425,13 @@ export function Navbar() {
       <ListPropertyModal
         isOpen={isListModalOpen}
         onClose={() => setIsListModalOpen(false)}
+      />
+
+      {/* Modal for Sign In / Sign Up */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        nextParam={pathname}
       />
     </>
   );

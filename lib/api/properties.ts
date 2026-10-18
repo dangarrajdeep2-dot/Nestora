@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FilterState, Property, College, LocationRef, Enquiry, Review } from '@/types';
+import { FilterState, Property, PropertyType, College, LocationRef, Enquiry, Review } from '@/types';
 import { MOCK_PROPERTIES, MOCK_COLLEGES, POPULAR_LOCATIONS } from './mockData';
 import { calculateDistance } from '@/lib/utils/distance';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
@@ -17,7 +17,7 @@ export interface PropertySearchResponse {
 interface SupabasePropertyRow {
   id: string;
   title: string;
-  type: 'PG' | 'Hostel' | 'Room';
+  type: PropertyType;
   gender: 'boys' | 'girls' | 'co-ed';
   tagline: string | null;
   description: string | null;
@@ -83,6 +83,11 @@ interface SupabasePropertyRow {
 
 let cachedProperties: Property[] | null = null;
 let lastFetch = 0;
+let inFlightFetchAll: Promise<Property[]> | null = null;
+
+let cachedColleges: College[] = [...MOCK_COLLEGES];
+let isCollegesFetched = false;
+let isCollegesFetching = false;
 
 let cachedColleges: College[] = [...MOCK_COLLEGES];
 let isCollegesFetched = false;
@@ -91,6 +96,7 @@ let isCollegesFetching = false;
 export function invalidatePropertiesCache(): void {
   cachedProperties = null;
   lastFetch = 0;
+  inFlightFetchAll = null;
   isCollegesFetched = false;
 }
 
@@ -145,158 +151,177 @@ async function fetchAllProperties(): Promise<Property[]> {
     return mergeLocalReviews(cachedProperties);
   }
 
-  try {
-    const timeoutPromise = new Promise<{ data: any; error: any }>((resolve) =>
-      setTimeout(() => resolve({ data: null, error: { message: 'Timeout fetching from Supabase' } }), 2500)
-    );
+  if (inFlightFetchAll) {
+    return inFlightFetchAll;
+  }
 
-    const queryPromise = supabase
-      .from('properties')
-      .select(`
-        *,
-        colleges(*),
-        owners(*),
-        rooms(*),
-        property_amenities(*),
-        food_details(*),
-        house_rules(*),
-        property_images(*),
-        reviews(*)
-      `);
+  inFlightFetchAll = (async () => {
+    try {
+      const timeoutPromise = new Promise<{ data: any; error: any }>((resolve) =>
+        setTimeout(() => resolve({ data: null, error: { message: 'Timeout fetching from Supabase' } }), 2500)
+      );
 
-    const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
+      const queryPromise = supabase
+        .from('properties')
+        .select(`
+          *,
+          colleges(*),
+          owners(*),
+          rooms(*),
+          property_amenities(*),
+          food_details(*),
+          house_rules(*),
+          property_images(*),
+          reviews(*)
+        `);
 
-    if (error) {
-      console.warn('⚠️ SHOWING MOCK/CACHED DATA: Supabase query failed or timed out.', error.message);
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
+
+      if (error) {
+        console.warn('⚠️ SHOWING MOCK/CACHED DATA: Supabase query failed or timed out.', error.message);
+        if (cachedProperties) return mergeLocalReviews(cachedProperties);
+        return mergeLocalReviews(MOCK_PROPERTIES);
+      }
+
+      if (!data || data.length === 0) {
+        console.warn('⚠️ SHOWING MOCK DATA: Supabase returned no properties.');
+        if (cachedProperties) return mergeLocalReviews(cachedProperties);
+        return mergeLocalReviews(MOCK_PROPERTIES);
+      }
+
+      const mappedProperties: Property[] = data.map((row: any) => {
+        // Map rooms
+        const mappedRooms = (row.rooms || []).map((r: any) => ({
+          id: r.id,
+          propertyId: r.property_id,
+          roomType: r.room_type,
+          sharing: r.sharing,
+          rent: r.rent,
+          deposit: r.deposit,
+          availableBeds: r.available_beds,
+          totalBeds: r.total_beds,
+          features: r.features || [],
+          isAvailable: r.is_available,
+        }));
+
+        // Map amenities
+        const amenities = (row.property_amenities || []).map((a: any) => a.amenity_name);
+
+        // Map food details
+        const food = row.food_details?.[0] || {};
+        const foodDetails = {
+          included: food.included || false,
+          type: food.food_type || 'Self Cooking / Optional Mess',
+          meals: food.meals || [],
+          description: food.description || '',
+          timing: food.timing || '',
+        };
+
+        // Map owner
+        const ownerData = row.owners || {};
+        const fallbackPhone = '9274413362'; // Nestora verified manager
+        const rawPhone = (ownerData.phone && ownerData.phone !== 'N/A' && ownerData.phone !== 'null') 
+          ? ownerData.phone 
+          : (ownerData.whatsapp && ownerData.whatsapp !== 'N/A' && ownerData.whatsapp !== 'null' ? ownerData.whatsapp : fallbackPhone);
+        const rawWhatsApp = (ownerData.whatsapp && ownerData.whatsapp !== 'N/A' && ownerData.whatsapp !== 'null') 
+          ? ownerData.whatsapp 
+          : rawPhone;
+
+        const owner = {
+          id: ownerData.id || 'owner-unknown',
+          name: ownerData.name && ownerData.name !== 'null' ? ownerData.name : 'Property Manager',
+          role: ownerData.role || 'Property Manager',
+          phone: rawPhone,
+          whatsapp: rawWhatsApp,
+          responseRate: ownerData.response_rate || 'Replies within 15 mins',
+          isVerified: ownerData.is_verified ?? true,
+          avatarUrl: ownerData.avatar_url || undefined,
+        };
+
+        // Map reviews
+        const reviews = (row.reviews || []).map((rev: any) => ({
+          id: rev.id,
+          propertyId: rev.property_id,
+          authorName: rev.author_name,
+          college: rev.college,
+          course: rev.course,
+          rating: rev.rating,
+          date: rev.date ? new Date(rev.date).toLocaleDateString() : 'Recently',
+          comment: rev.comment,
+          verifiedStay: rev.verified_stay,
+          helpfulCount: rev.helpful_count,
+        }));
+
+        // Fallback for rating/reviews if missing in db
+        const avgRating = reviews.length > 0 
+          ? reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length 
+          : (row.verification === 'demo' ? 4.5 : 4.0);
+
+        // Images
+        const images = (row.property_images || []).sort((a: any, b: any) => a.display_order - b.display_order).map((i: any) => i.image_url);
+        const fallbackImages = [
+          'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1000&q=80',
+          'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1000&q=80',
+        ];
+
+        const cityFallback = getCityCoordinates(row.city);
+        const propLat = row.latitude != null && !isNaN(Number(row.latitude)) && Number(row.latitude) !== 0
+          ? Number(row.latitude)
+          : cityFallback.lat;
+        const propLng = row.longitude != null && !isNaN(Number(row.longitude)) && Number(row.longitude) !== 0
+          ? Number(row.longitude)
+          : cityFallback.lng;
+
+        return {
+          id: row.id,
+          title: row.title,
+          type: row.type,
+          gender: row.gender,
+          tagline: row.tagline || '',
+          description: row.description || '',
+          address: row.address,
+          area: row.area,
+          city: row.city,
+          latitude: propLat,
+          longitude: propLng,
+          googleMapUrl: row.source_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${row.title || ''}, ${row.area || ''}, ${row.city || ''}`)}`,
+          nearbyCollegeId: row.nearby_college_id,
+          nearbyCollegeName: row.colleges?.name,
+          distanceKm: undefined,
+          verified: row.verification === 'verified',
+          rating: Number(avgRating.toFixed(1)),
+          reviewCount: reviews.length > 0 ? reviews.length : 12,
+          startingRent: row.starting_rent,
+          deposit: row.deposit,
+          images: images.length > 0 ? images : fallbackImages,
+          rooms: mappedRooms,
+          amenities: amenities,
+          isFurnished: row.is_furnished,
+          isAvailableNow: row.is_available_now,
+          foodDetails,
+          houseRules: (row.house_rules || []).map((hr: any) => hr.rule),
+          owner,
+          reviews,
+          noticePeriodDays: row.notice_period_days,
+          gateClosingTime: row.gate_closing_time,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+        };
+      });
+
+      cachedProperties = mappedProperties;
+      lastFetch = Date.now();
+      return mergeLocalReviews(mappedProperties);
+    } catch (err) {
+      console.error('Error in fetchAllProperties:', err);
       if (cachedProperties) return mergeLocalReviews(cachedProperties);
       return mergeLocalReviews(MOCK_PROPERTIES);
+    } finally {
+      inFlightFetchAll = null;
     }
+  })();
 
-    if (!data || data.length === 0) {
-      console.warn('⚠️ SHOWING MOCK DATA: Supabase returned no properties.');
-      if (cachedProperties) return mergeLocalReviews(cachedProperties);
-      return MOCK_PROPERTIES;
-    }
-
-    const mappedProperties: Property[] = data.map((row: any) => {
-      // Map rooms
-      const mappedRooms = (row.rooms || []).map((r: any) => ({
-        id: r.id,
-        propertyId: r.property_id,
-        roomType: r.room_type,
-        sharing: r.sharing,
-        rent: r.rent,
-        deposit: r.deposit,
-        availableBeds: r.available_beds,
-        totalBeds: r.total_beds,
-        features: r.features || [],
-        isAvailable: r.is_available,
-      }));
-
-      // Map amenities
-      const amenities = (row.property_amenities || []).map((a: any) => a.amenity_name);
-
-      // Map food details
-      const food = row.food_details?.[0] || {};
-      const foodDetails = {
-        included: food.included || false,
-        type: food.food_type || 'Self Cooking / Optional Mess',
-        meals: food.meals || [],
-        description: food.description || '',
-        timing: food.timing || '',
-      };
-
-      // Map owner
-      const ownerData = row.owners || {};
-      const owner = {
-        id: ownerData.id || 'owner-unknown',
-        name: ownerData.name || 'Property Manager',
-        role: ownerData.role || 'Owner',
-        phone: ownerData.phone || 'N/A',
-        whatsapp: ownerData.whatsapp || 'N/A',
-        responseRate: ownerData.response_rate || 'Replies soon',
-        isVerified: ownerData.is_verified || false,
-        avatarUrl: ownerData.avatar_url || undefined,
-      };
-
-      // Map reviews
-      const reviews = (row.reviews || []).map((rev: any) => ({
-        id: rev.id,
-        propertyId: rev.property_id,
-        authorName: rev.author_name,
-        college: rev.college,
-        course: rev.course,
-        rating: rev.rating,
-        date: rev.date ? new Date(rev.date).toLocaleDateString() : 'Recently',
-        comment: rev.comment,
-        verifiedStay: rev.verified_stay,
-        helpfulCount: rev.helpful_count,
-      }));
-
-      // Fallback for rating/reviews if missing in db
-      const avgRating = reviews.length > 0 
-        ? reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length 
-        : (row.verification === 'demo' ? 4.5 : 4.0);
-
-      // Images
-      const images = (row.property_images || []).sort((a: any, b: any) => a.display_order - b.display_order).map((i: any) => i.image_url);
-      const fallbackImages = [
-        'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1000&q=80',
-        'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1000&q=80',
-      ];
-
-      const cityFallback = getCityCoordinates(row.city);
-      const propLat = row.latitude != null && !isNaN(Number(row.latitude)) && Number(row.latitude) !== 0
-        ? Number(row.latitude)
-        : cityFallback.lat;
-      const propLng = row.longitude != null && !isNaN(Number(row.longitude)) && Number(row.longitude) !== 0
-        ? Number(row.longitude)
-        : cityFallback.lng;
-
-      return {
-        id: row.id,
-        title: row.title,
-        type: row.type,
-        gender: row.gender,
-        tagline: row.tagline || '',
-        description: row.description || '',
-        address: row.address,
-        area: row.area,
-        city: row.city,
-        latitude: propLat,
-        longitude: propLng,
-        googleMapUrl: row.source_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${row.title || ''}, ${row.area || ''}, ${row.city || ''}`)}`,
-        nearbyCollegeId: row.nearby_college_id,
-        nearbyCollegeName: row.colleges?.name,
-        distanceKm: undefined,
-        verified: row.verification === 'verified',
-        rating: Number(avgRating.toFixed(1)),
-        reviewCount: reviews.length > 0 ? reviews.length : 12,
-        startingRent: row.starting_rent,
-        deposit: row.deposit,
-        images: images.length > 0 ? images : fallbackImages,
-        rooms: mappedRooms,
-        amenities: amenities,
-        isFurnished: row.is_furnished,
-        isAvailableNow: row.is_available_now,
-        foodDetails,
-        houseRules: (row.house_rules || []).map((hr: any) => hr.rule),
-        owner,
-        reviews,
-        noticePeriodDays: row.notice_period_days,
-        gateClosingTime: row.gate_closing_time,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      };
-    });
-
-    cachedProperties = mappedProperties;
-    lastFetch = Date.now();
-    return mergeLocalReviews(mappedProperties);
-  } catch (err) {
-    console.error('Error in fetchAllProperties:', err);
-    return mergeLocalReviews(MOCK_PROPERTIES);
-  }
+  return inFlightFetchAll;
 }
 
 /**
@@ -379,8 +404,8 @@ export async function getProperties(filters: FilterState = {}): Promise<Property
   // 2. Gender filter
   if (filters.gender && filters.gender !== 'all') {
     results = results.filter((prop) => {
-      if (filters.gender === 'boys') return prop.gender === 'boys' || prop.gender === 'co-ed';
-      if (filters.gender === 'girls') return prop.gender === 'girls' || prop.gender === 'co-ed';
+      if (filters.gender === 'boys') return prop.gender === 'boys' || prop.gender === 'co-ed' || prop.gender === 'boys_and_girls';
+      if (filters.gender === 'girls') return prop.gender === 'girls' || prop.gender === 'co-ed' || prop.gender === 'boys_and_girls';
       return true;
     });
   }
@@ -486,6 +511,55 @@ export async function getPropertyById(id: string): Promise<Property | null> {
 }
 
 export async function getPopularLocations(): Promise<LocationRef[]> {
+  if (isSupabaseConfigured) {
+    try {
+      const colleges = await getColleges();
+      const properties = await fetchAllProperties();
+
+      const locations: LocationRef[] = [];
+
+      // Add colleges from Supabase as student hubs
+      colleges.forEach((c) => {
+        locations.push({
+          id: `col-${c.id}`,
+          name: c.name,
+          area: c.area,
+          city: c.city,
+          latitude: c.latitude,
+          longitude: c.longitude,
+          type: 'college',
+          subtitle: c.popularLandmark || `Student hub near ${c.name} in ${c.city}`,
+        });
+      });
+
+      // Add unique localities/areas from actual Supabase properties
+      const seenAreas = new Set<string>();
+      properties.forEach((p) => {
+        if (!p.area || !p.city) return;
+        const key = `${p.area.toLowerCase()}__${p.city.toLowerCase()}`;
+        if (!seenAreas.has(key)) {
+          seenAreas.add(key);
+          locations.push({
+            id: `area-${p.id}`,
+            name: `${p.area}, ${p.city}`,
+            area: p.area,
+            city: p.city,
+            latitude: p.latitude,
+            longitude: p.longitude,
+            type: 'area',
+            subtitle: `Verified stays in ${p.area}, ${p.city}`,
+          });
+        }
+      });
+
+      if (locations.length > 0) {
+        return locations;
+      }
+    } catch (e) {
+      console.warn('Could not load popular locations from Supabase:', e);
+    }
+  }
+
   return POPULAR_LOCATIONS;
 }
 
@@ -527,6 +601,7 @@ export async function getColleges(): Promise<College[]> {
  * Universal search suggesting colleges, areas, and localities
  */
 export async function searchLocations(query: string): Promise<LocationRef[]> {
+  const activeLocations = await getPopularLocations();
   const activeColleges = await getColleges();
 
   if (!query || !query.trim()) {
@@ -581,10 +656,17 @@ export async function searchLocations(query: string): Promise<LocationRef[]> {
   });
 }
 
+export interface SubmitEnquiryResponse {
+  success: boolean;
+  requireAuth?: boolean;
+  error?: string;
+  enquiry?: Enquiry;
+}
+
 /**
- * Mock enquiry submission with localStorage sync, and Supabase if available
+ * Enquiry submission with server-side validation and Supabase insertion
  */
-export async function submitEnquiry(enquiry: Omit<Enquiry, 'id' | 'status' | 'createdAt'>): Promise<Enquiry> {
+export async function submitEnquiry(enquiry: Omit<Enquiry, 'id' | 'status' | 'createdAt'>): Promise<SubmitEnquiryResponse> {
   const newEnquiry: Enquiry = {
     ...enquiry,
     id: `enq-${Date.now()}`,
@@ -593,20 +675,21 @@ export async function submitEnquiry(enquiry: Omit<Enquiry, 'id' | 'status' | 'cr
   };
 
   if (isSupabaseConfigured) {
-    const { error } = await supabase.from('enquiries').insert({
-      property_id: enquiry.propertyId,
-      property_name: enquiry.propertyName,
-      student_name: enquiry.studentName,
-      student_phone: enquiry.studentPhone,
+    const { submitEnquiryAction } = await import('@/lib/actions/enquiry');
+    const result = await submitEnquiryAction({
+      propertyId: enquiry.propertyId,
+      propertyName: enquiry.propertyName,
+      studentName: enquiry.studentName,
+      studentPhone: enquiry.studentPhone,
+      studentCollege: enquiry.studentCollege,
       gender: enquiry.gender,
-      move_in_date: enquiry.moveInDate || null,
-      sharing_preference: enquiry.sharingPreference,
-      status: 'pending'
+      moveInDate: enquiry.moveInDate,
+      sharingPreference: enquiry.sharingPreference,
+      message: enquiry.message,
     });
-    
-    if (error) {
-      console.error('Failed to submit enquiry to Supabase:', error);
-      throw new Error(error.message); // Throw to abort localStorage fallback and alert UI
+
+    if (!result.success) {
+      return result;
     }
   }
 
@@ -620,7 +703,7 @@ export async function submitEnquiry(enquiry: Omit<Enquiry, 'id' | 'status' | 'cr
     }
   }
 
-  return newEnquiry;
+  return { success: true, enquiry: newEnquiry };
 }
 
 /**

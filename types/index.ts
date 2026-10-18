@@ -1,5 +1,5 @@
-export type PropertyType = 'PG' | 'Hostel' | 'Room';
-export type GenderTarget = 'boys' | 'girls' | 'co-ed';
+export type PropertyType = 'PG' | 'Hostel' | 'Room' | 'PG AND Hostel';
+export type GenderTarget = 'boys' | 'girls' | 'co-ed' | 'boys_and_girls';
 export type SharingType = 'single' | '2-sharing' | '3-sharing' | '4-plus-sharing';
 
 export interface User {

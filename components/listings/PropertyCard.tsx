@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { SafeImage } from '@/components/ui/SafeImage';
 import { 
   ShieldCheck, 
@@ -24,6 +25,7 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, viewMode = 'grid', referenceLocation }: PropertyCardProps) {
+  const router = useRouter();
   const { isSaved, toggle } = useSavedProperties();
   const saved = isSaved(property.id);
 
@@ -37,12 +39,44 @@ export function PropertyCard({ property, viewMode = 'grid', referenceLocation }:
     ? property.rooms[0].sharing.replace('-', ' ').replace('plus', '+')
     : 'Multiple Sharing';
 
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button, a, [data-prevent-card-click="true"]')) {
+      return;
+    }
+    if (e.metaKey || e.ctrlKey) {
+      window.open(`/property/${property.id}`, '_blank');
+      return;
+    }
+    router.push(`/property/${property.id}`);
+  };
+
+  const handleAuxClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button === 1) {
+      const target = e.target as HTMLElement;
+      if (target.closest('button, a, [data-prevent-card-click="true"]')) {
+        return;
+      }
+      window.open(`/property/${property.id}`, '_blank');
+    }
+  };
+
   const cardContent = (
     <div 
-      className={`group glass-card hover:border-emerald-500/50 dark:hover:border-emerald-500/60 rounded-3xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-emerald-500/10 flex flex-col overflow-hidden relative h-full ${
+      onClick={handleCardClick}
+      onAuxClick={handleAuxClick}
+      className={`group glass-card hover:border-emerald-500/50 dark:hover:border-emerald-500/60 rounded-3xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-emerald-500/10 flex flex-col overflow-hidden relative md:preserve-3d h-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50 ${
         viewMode === 'list' ? 'sm:flex-row' : ''
       }`}
     >
+      {/* Full-card link covering photo, text, and layout for instant tap on mobile and click on desktop */}
+      <Link
+        href={`/property/${property.id}`}
+        aria-label={`View details for ${property.title}`}
+        className="absolute inset-0 z-10 rounded-3xl cursor-pointer"
+        tabIndex={-1}
+      />
+
       {/* Property Image & Overlays */}
       <div 
         className={`relative overflow-hidden bg-slate-100 dark:bg-slate-800 ${
@@ -61,11 +95,11 @@ export function PropertyCard({ property, viewMode = 'grid', referenceLocation }:
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
 
         {/* Top Badges */}
-        <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
-          <div className="flex items-center gap-1.5 flex-wrap pointer-events-auto">
+        <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-20 pointer-events-none">
+          <div className="flex items-center gap-1.5 flex-wrap pointer-events-none">
             {/* Gender Badge */}
             <span 
-              className={`text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm capitalize backdrop-blur-md ${
+              className={`text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm capitalize backdrop-blur-md pointer-events-none ${
                 property.gender === 'girls'
                   ? 'bg-rose-500/95 text-white'
                   : property.gender === 'boys'
@@ -73,11 +107,11 @@ export function PropertyCard({ property, viewMode = 'grid', referenceLocation }:
                   : 'bg-purple-600/95 text-white'
               }`}
             >
-              {property.gender === 'girls' ? 'Girls Only' : property.gender === 'boys' ? 'Boys Only' : 'Co-ed'}
+              {property.gender === 'girls' ? 'Girls Only' : property.gender === 'boys' ? 'Boys Only' : 'Boys & Girls'}
             </span>
 
             {/* Property Type Badge */}
-            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-slate-200 backdrop-blur-md shadow-sm">
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-slate-200 backdrop-blur-md shadow-sm pointer-events-none">
               {property.type}
             </span>
           </div>
@@ -85,13 +119,14 @@ export function PropertyCard({ property, viewMode = 'grid', referenceLocation }:
           {/* Interactive Favorite / Save Button */}
           <button
             type="button"
+            data-prevent-card-click="true"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               toggle(property.id);
             }}
             aria-label={saved ? 'Remove from saved' : 'Save property'}
-            className="w-8 h-8 rounded-full bg-white/90 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-rose-500 dark:hover:text-rose-400 flex items-center justify-center transition-all shadow-md pointer-events-auto active:scale-90"
+            className="w-8 h-8 rounded-full bg-white/90 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-rose-500 dark:hover:text-rose-400 flex items-center justify-center transition-all shadow-md pointer-events-auto relative z-30 active:scale-90"
           >
             <Heart
               size={17}
@@ -101,16 +136,16 @@ export function PropertyCard({ property, viewMode = 'grid', referenceLocation }:
         </div>
 
         {/* Verified Badge Overlay at bottom of image */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-2 z-10">
+        <div className="absolute bottom-3 left-3 flex items-center gap-2 z-20 pointer-events-none">
           {property.verified && (
-            <span className="inline-flex items-center gap-1 bg-emerald-600/95 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md shadow-sm backdrop-blur-sm">
+            <span className="inline-flex items-center gap-1 bg-emerald-600/95 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md shadow-sm backdrop-blur-sm pointer-events-none">
               <ShieldCheck size={13} className="shrink-0" />
               Verified
             </span>
           )}
 
           {property.isAvailableNow && (
-            <span className="inline-flex items-center gap-1 bg-teal-500/95 text-white text-[10px] font-medium px-1.5 py-0.5 rounded-md shadow-sm backdrop-blur-sm">
+            <span className="inline-flex items-center gap-1 bg-teal-500/95 text-white text-[10px] font-medium px-1.5 py-0.5 rounded-md shadow-sm backdrop-blur-sm pointer-events-none">
               <Sparkles size={11} />
               Available Now
             </span>
@@ -148,11 +183,11 @@ export function PropertyCard({ property, viewMode = 'grid', referenceLocation }:
           )}
 
           {/* Property Name */}
-          <Link href={`/property/${property.id}`} className="group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+          <div className="group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors block">
             <h3 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg line-clamp-1 mb-1">
               {property.title}
             </h3>
-          </Link>
+          </div>
 
           {/* Area / Locality */}
           <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm flex items-center mb-3 line-clamp-1">
@@ -189,13 +224,12 @@ export function PropertyCard({ property, viewMode = 'grid', referenceLocation }:
             )}
           </div>
 
-          <Link
-            href={`/property/${property.id}`}
-            className="btn-3d inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold transition-all duration-200 shadow-sm hover:shadow"
+          <div
+            className="btn-3d inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 dark:bg-emerald-600 group-hover:bg-emerald-600 dark:group-hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold transition-all duration-200 shadow-sm hover:shadow"
           >
             <span>View details</span>
-            <ArrowRight size={14} />
-          </Link>
+            <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+          </div>
         </div>
       </div>
     </div>

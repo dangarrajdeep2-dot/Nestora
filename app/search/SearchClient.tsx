@@ -20,7 +20,8 @@ import { FilterState, Property, LocationRef } from '@/types';
 import { getProperties, searchLocations } from '@/lib/api/properties';
 import { PropertyCard } from '@/components/listings/PropertyCard';
 import { FilterSidebar } from '@/components/listings/FilterSidebar';
-import PropertyMap from '@/components/listings/PropertyMap';
+import dynamic from 'next/dynamic';
+const PropertyMap = dynamic(() => import('@/components/listings/PropertyMap'), { ssr: false, loading: () => <div className="h-80 sm:h-96 w-full rounded-3xl bg-slate-100 dark:bg-slate-900 animate-pulse flex items-center justify-center text-slate-400">Loading map...</div> });
 import { 
   SearchResultsSkeleton, 
   NoResultsState, 
@@ -95,7 +96,10 @@ export function SearchClient() {
     setIsLoading(true);
     setHasError(false);
     try {
-      const response = await getProperties(filters);
+      const timeoutPromise = new Promise<{ properties: Property[] }>((_, reject) =>
+        setTimeout(() => reject(new Error('Search properties timeout')), 8000)
+      );
+      const response = await Promise.race([getProperties(filters), timeoutPromise]);
       setProperties(response.properties);
     } catch {
       setHasError(true);

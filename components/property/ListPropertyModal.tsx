@@ -8,6 +8,7 @@ import {
   CheckCircle2, 
   Loader2 
 } from 'lucide-react';
+import { PropertyType } from '@/types';
 
 interface ListPropertyModalProps {
   isOpen: boolean;
@@ -20,7 +21,7 @@ export function ListPropertyModal({ isOpen, onClose }: ListPropertyModalProps) {
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('Rajkot');
   const [area, setArea] = useState('');
-  const [propertyType, setPropertyType] = useState<'PG' | 'Hostel' | 'Room'>('PG');
+  const [propertyType, setPropertyType] = useState<PropertyType>('PG');
   const [gender, setGender] = useState<'boys' | 'girls' | 'co-ed'>('boys');
   const [startingRent, setStartingRent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -160,12 +161,13 @@ export function ListPropertyModal({ isOpen, onClose }: ListPropertyModalProps) {
                   <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">Type</label>
                   <select
                     value={propertyType}
-                    onChange={(e) => setPropertyType(e.target.value as "PG" | "Hostel" | "Room")}
+                    onChange={(e) => setPropertyType(e.target.value as PropertyType)}
                     className="w-full px-2 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
                   >
                     <option value="PG">PG</option>
                     <option value="Hostel">Hostel</option>
                     <option value="Room">Room</option>
+                    <option value="PG AND Hostel">PG AND Hostel</option>
                   </select>
                 </div>
                 <div>

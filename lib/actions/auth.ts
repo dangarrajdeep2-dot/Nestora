@@ -13,8 +13,10 @@ export async function loginAction(state: { error: string } | null, formData: For
 
   const supabase = await createClient();
 
+  const cleanEmail = email.trim().toLowerCase();
+
   const { data, error } = await supabase.auth.signInWithPassword({
-    email,
+    email: cleanEmail,
     password,
   });
 
@@ -27,11 +29,11 @@ export async function loginAction(state: { error: string } | null, formData: For
     .from('admin_users')
     .select('id')
     .eq('id', data.user.id)
-    .single();
+    .maybeSingle();
 
   if (adminError || !admin) {
     await supabase.auth.signOut();
-    return { error: 'Unauthorized: Not an admin.' };
+    return { error: 'Unauthorized: This account does not have administrator privileges.' };
   }
 
   redirect('/admin/properties');

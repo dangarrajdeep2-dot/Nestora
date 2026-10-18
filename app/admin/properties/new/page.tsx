@@ -7,7 +7,7 @@ export default async function NewPropertyPage() {
   const colleges = await getAdminColleges();
 
   return (
-    <div className="p-6 sm:p-10 max-w-6xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 md:p-10 max-w-6xl mx-auto space-y-6 w-full min-w-0">
       <PropertyForm colleges={colleges} mode="create" />
     </div>
   );

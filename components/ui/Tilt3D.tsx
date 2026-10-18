@@ -89,7 +89,7 @@ export function Tilt3D({
 
   // On mobile / touch devices, render plain clean container with zero 3D overhead
   if (isTouchOrMobile) {
-    return <div className={`relative ${className}`}>{children}</div>;
+    return <div className={`relative w-full max-w-full min-w-0 ${className}`}>{children}</div>;
   }
 
   return (
@@ -105,7 +105,7 @@ export function Tilt3D({
           : 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
         transformStyle: 'preserve-3d',
       }}
-      className={`relative preserve-3d will-change-transform ${className}`}
+      className={`relative w-full max-w-full min-w-0 preserve-3d will-change-transform ${className}`}
     >
       {children}
 

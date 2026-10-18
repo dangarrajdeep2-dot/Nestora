@@ -27,7 +27,7 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
@@ -51,22 +51,47 @@ export async function proxy(request: NextRequest) {
     if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = '/admin/login'
-      return NextResponse.redirect(url)
+      const redirectResponse = NextResponse.redirect(url)
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie)
+      })
+      return redirectResponse
     }
 
     // UX Layer Authorization Check
-    // If not an admin, redirect back to home. True security remains in Server Actions.
+    // If not an admin, redirect back to admin login with explicit feedback
     const { data: adminUser } = await supabase
       .from('admin_users')
       .select('id')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     if (!adminUser) {
-      // Not an admin
       const url = request.nextUrl.clone()
-      url.pathname = '/'
-      return NextResponse.redirect(url)
+      url.pathname = '/admin/login'
+      url.searchParams.set('error', 'Unauthorized: Administrator privileges required.')
+      const redirectResponse = NextResponse.redirect(url)
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie)
+      })
+      return redirectResponse
+    }
+  } else if (user) {
+    // If an authenticated admin visits /admin/login, forward to /admin/properties
+    const { data: adminUser } = await supabase
+      .from('admin_users')
+      .select('id')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (adminUser) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/admin/properties'
+      const redirectResponse = NextResponse.redirect(url)
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie)
+      })
+      return redirectResponse
     }
   }
 

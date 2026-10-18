@@ -11,38 +11,156 @@ import {
   Calendar, 
   MessageSquare, 
   ShieldCheck, 
-  Loader2 
+  Loader2,
+  MessageCircle
 } from 'lucide-react';
 import { Property } from '@/types';
 import { submitEnquiry } from '@/lib/api/properties';
+
+function cleanWhatsAppNumber(whatsapp?: string, phone?: string): string {
+  const raw = whatsapp || phone || '';
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) return `91${digits}`;
+  if (digits.length === 12 && digits.startsWith('91')) return digits;
+  if (digits.length > 10 && digits.startsWith('0')) return `91${digits.slice(1)}`;
+  return digits;
+}
+
+function buildWhatsAppMessage({
+  ownerName,
+  propertyTitle,
+  propertyArea,
+  propertyCity,
+  studentName,
+  studentPhone,
+  studentCollege,
+  sharingPreference,
+  moveInDate,
+  message,
+}: {
+  ownerName: string;
+  propertyTitle: string;
+  propertyArea: string;
+  propertyCity: string;
+  studentName: string;
+  studentPhone: string;
+  studentCollege: string;
+  sharingPreference: string;
+  moveInDate: string;
+  message?: string;
+}) {
+  const parts = [
+    `👋 Hello *${ownerName}*,`,
+    `I am interested in your stay *"${propertyTitle}"* (${propertyArea}, ${propertyCity}) listed on Nestora!`,
+    ``,
+    `📋 *Student Enquiry Details:*`,
+    `👤 *Student Name:* ${studentName.trim()}`,
+    `📞 *Mobile:* +91 ${studentPhone.trim()}`,
+    `🎓 *College:* ${studentCollege.trim()}`,
+    `🛏️ *Sharing Preference:* ${sharingPreference}`,
+    `📅 *Expected Move-in:* ${moveInDate}`,
+  ];
+
+  if (message && message.trim()) {
+    parts.push(`💬 *Message:* ${message.trim()}`);
+  } else {
+    parts.push(`💬 *Message:* Hi, please let me know if a bed is available and when I can schedule a visit.`);
+  }
+
+  parts.push(``);
+  parts.push(`_(Sent via Nestora Student Housing)_`);
+
+  return parts.join('\n');
+}
 
 interface EnquiryModalProps {
   property: Property;
   isOpen: boolean;
   onClose: () => void;
   selectedRoomType?: string;
+  onRequireAuth?: () => void;
 }
 
-export function EnquiryModal({ property, isOpen, onClose, selectedRoomType }: EnquiryModalProps) {
-  const [studentName, setStudentName] = useState('');
-  const [studentPhone, setStudentPhone] = useState('');
-  const [studentCollege, setStudentCollege] = useState('');
-  const [moveInDate, setMoveInDate] = useState('');
+export function EnquiryModal({ property, isOpen, onClose, selectedRoomType, onRequireAuth }: EnquiryModalProps) {
+  const [initialData] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const saved = sessionStorage.getItem('nestora_pending_enquiry');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.propertyId === property.id) {
+          sessionStorage.removeItem('nestora_pending_enquiry');
+          return parsed;
+        }
+      }
+    } catch {}
+    return null;
+  });
+
+  const [studentName, setStudentName] = useState(() => initialData?.studentName || '');
+  const [studentPhone, setStudentPhone] = useState(() => (initialData?.studentPhone ? initialData.studentPhone.replace(/\D/g, '') : ''));
+  const [studentCollege, setStudentCollege] = useState(() => initialData?.studentCollege || '');
+  const [moveInDate, setMoveInDate] = useState(() => initialData?.moveInDate || '');
   const [sharingPreference, setSharingPreference] = useState(
-    selectedRoomType || property.rooms[0]?.roomType || '2 Sharing'
+    () => initialData?.sharingPreference || selectedRoomType || property.rooms[0]?.roomType || '2 Sharing'
   );
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(() => initialData?.message || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [generatedWhatsAppUrl, setGeneratedWhatsAppUrl] = useState<string>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      // Fetch authenticated user details to auto-fill empty fields
+      import('@/lib/supabase/client').then(({ supabase }) => {
+        supabase.auth.getUser().then(({ data: { user } }) => {
+          if (user) {
+            supabase
+              .from('users')
+              .select('name, phone, college')
+              .eq('id', user.id)
+              .maybeSingle()
+              .then(({ data }) => {
+                if (data) {
+                  setStudentName((prev: string) => prev || data.name || '');
+                  setStudentPhone((prev: string) => prev || (data.phone ? data.phone.replace(/\D/g, '') : ''));
+                  setStudentCollege((prev: string) => prev || data.college || '');
+                }
+              });
+          }
+        });
+      });
+    }
+  }, [isOpen, property.id]);
 
   if (!isOpen) return null;
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digitsOnly = e.target.value.replace(/\D/g, '');
+    setStudentPhone(digitsOnly);
+
+    if (digitsOnly.length > 10) {
+      setErrors((prev) => ({
+        ...prev,
+        phone: 'Phone number must be exactly 10 digits.',
+      }));
+    } else {
+      setErrors((prev) => {
+        if (!prev.phone) return prev;
+        const next = { ...prev };
+        delete next.phone;
+        return next;
+      });
+    }
+  };
 
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!studentName.trim()) errs.name = 'Please enter your name';
-    if (!studentPhone.trim() || studentPhone.length < 10) {
-      errs.phone = 'Please enter a valid 10-digit phone number';
+    if (!studentPhone.trim() || studentPhone.length !== 10) {
+      errs.phone = 'Phone number must be exactly 10 digits.';
     }
     if (!studentCollege.trim()) errs.college = 'Please enter your college or university';
     if (!moveInDate) errs.date = 'Please select your tentative move-in date';
@@ -52,11 +170,40 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType }: En
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setServerErrorMessage(null);
     if (!validate()) return;
+
+    // Check client authentication before sending
+    const { supabase } = await import('@/lib/supabase/client');
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      // Store pending form details so user does not re-type upon returning
+      try {
+        sessionStorage.setItem(
+          'nestora_pending_enquiry',
+          JSON.stringify({
+            propertyId: property.id,
+            studentName,
+            studentPhone,
+            studentCollege,
+            moveInDate,
+            sharingPreference,
+            message,
+          })
+        );
+      } catch {}
+
+      onClose();
+      if (onRequireAuth) {
+        onRequireAuth();
+      }
+      return;
+    }
 
     setIsSubmitting(true);
     try {
-      await submitEnquiry({
+      const result = await submitEnquiry({
         propertyId: property.id,
         propertyName: property.title,
         studentName,
@@ -67,9 +214,62 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType }: En
         sharingPreference,
         message,
       });
+
+      if (!result.success) {
+        if (result.requireAuth) {
+          try {
+            sessionStorage.setItem(
+              'nestora_pending_enquiry',
+              JSON.stringify({
+                propertyId: property.id,
+                studentName,
+                studentPhone,
+                studentCollege,
+                moveInDate,
+                sharingPreference,
+                message,
+              })
+            );
+          } catch {}
+          onClose();
+          if (onRequireAuth) {
+            onRequireAuth();
+          }
+          return;
+        }
+
+        setServerErrorMessage(result.error || 'Failed to submit enquiry. Please try again.');
+        return;
+      }
+
+      // Generate formatted WhatsApp URL
+      const targetPhone = cleanWhatsAppNumber(property.owner.whatsapp, property.owner.phone);
+      let waUrl = '';
+      if (targetPhone) {
+        const waText = buildWhatsAppMessage({
+          ownerName: property.owner.name,
+          propertyTitle: property.title,
+          propertyArea: property.area,
+          propertyCity: property.city,
+          studentName,
+          studentPhone,
+          studentCollege,
+          sharingPreference,
+          moveInDate,
+          message,
+        });
+        waUrl = `https://wa.me/${targetPhone}?text=${encodeURIComponent(waText)}`;
+        setGeneratedWhatsAppUrl(waUrl);
+
+        if (typeof window !== 'undefined') {
+          // Open WhatsApp in a new tab/window directly
+          window.open(waUrl, '_blank');
+        }
+      }
+
       setIsSubmitted(true);
     } catch {
-      alert('Unable to send enquiry. Please try again or contact via WhatsApp.');
+      setServerErrorMessage('Unable to send enquiry. Please try again or contact via WhatsApp.');
     } finally {
       setIsSubmitting(false);
     }
@@ -90,15 +290,41 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType }: En
         </button>
 
         {isSubmitted ? (
-          <div className="py-8 text-center space-y-4">
+          <div className="py-6 text-center space-y-4">
             <div className="w-16 h-16 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
               <CheckCircle2 size={36} />
             </div>
-            <h3 className="text-2xl font-bold">Enquiry Sent Successfully!</h3>
+            <h3 className="text-2xl font-bold">Enquiry Registered!</h3>
             <p className="text-sm text-slate-600 dark:text-slate-300 max-w-sm mx-auto leading-relaxed">
-              We have forwarded your details to <span className="font-semibold text-slate-900 dark:text-white">{property.owner.name}</span>. The property manager will call you or connect on WhatsApp shortly.
+              Your inquiry has been logged in Nestora. A pre-filled WhatsApp message with your details has been prepared for <span className="font-semibold text-slate-900 dark:text-white">{property.owner.name}</span>.
             </p>
-            <div className="bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 p-3.5 rounded-2xl text-xs font-semibold border border-emerald-500/20">
+
+            {/* Inquiry Details Summary */}
+            <div className="text-left bg-slate-50 dark:bg-slate-950/60 p-4 rounded-2xl border border-slate-200/70 dark:border-slate-800 text-xs space-y-1.5 text-slate-600 dark:text-slate-300">
+              <div><span className="font-bold text-slate-900 dark:text-white">Student:</span> {studentName} (+91 {studentPhone})</div>
+              <div><span className="font-bold text-slate-900 dark:text-white">College:</span> {studentCollege}</div>
+              <div><span className="font-bold text-slate-900 dark:text-white">Stay:</span> {property.title} ({sharingPreference})</div>
+              <div><span className="font-bold text-slate-900 dark:text-white">Move-in Date:</span> {moveInDate}</div>
+            </div>
+
+            {generatedWhatsAppUrl ? (
+              <div className="space-y-2 pt-1">
+                <a
+                  href={generatedWhatsAppUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition cursor-pointer"
+                >
+                  <MessageCircle size={18} />
+                  <span>Open WhatsApp & Message {property.owner.name}</span>
+                </a>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                  Click above if WhatsApp didn't open automatically
+                </p>
+              </div>
+            ) : null}
+
+            <div className="bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 p-3 rounded-2xl text-xs font-semibold border border-emerald-500/20">
               ✓ Direct owner connection with zero brokerage fees
             </div>
             <button
@@ -106,7 +332,7 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType }: En
                 setIsSubmitted(false);
                 onClose();
               }}
-              className="mt-4 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition"
+              className="mt-2 px-6 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl font-bold text-sm transition cursor-pointer"
             >
               Done
             </button>
@@ -125,6 +351,12 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType }: En
                 {property.area}, {property.city} • Starts at ₹{property.startingRent.toLocaleString()}/mo
               </p>
             </div>
+
+            {serverErrorMessage && (
+              <div className="p-3 mb-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-semibold">
+                {serverErrorMessage}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Student Name */}
@@ -155,9 +387,10 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType }: En
                   <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="tel"
+                    inputMode="numeric"
                     required
                     value={studentPhone}
-                    onChange={(e) => setStudentPhone(e.target.value)}
+                    onChange={handlePhoneChange}
                     placeholder="10-digit mobile number"
                     className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none"
                   />
@@ -239,7 +472,7 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType }: En
                 </div>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-2 space-y-2">
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -248,15 +481,18 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType }: En
                   {isSubmitting ? (
                     <>
                       <Loader2 size={18} className="animate-spin" />
-                      <span>Sending Details...</span>
+                      <span>Sending Details to Owner...</span>
                     </>
                   ) : (
                     <>
-                      <Send size={18} />
-                      <span>Submit Enquiry</span>
+                      <MessageCircle size={18} />
+                      <span>Send Enquiry & Chat on WhatsApp</span>
                     </>
                   )}
                 </button>
+                <p className="text-[11px] text-center text-slate-400 dark:text-slate-500">
+                  Pre-fills your student details & directly connects you with the owner on WhatsApp
+                </p>
               </div>
             </form>
           </div>

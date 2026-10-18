@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { MOCK_COLLEGES } from '@/lib/api/mockData';
+import { getColleges } from '@/lib/api/properties';
 
 export default async function CollegePage({ 
   params 
@@ -9,10 +9,20 @@ export default async function CollegePage({
   const resolvedParams = await Promise.resolve(params);
   const collegeId = resolvedParams.collegeId;
 
-  // Look up college
-  const foundCollege = MOCK_COLLEGES.find(
-    (c) => c.id === collegeId || c.id.includes(collegeId) || collegeId.includes(c.id)
-  );
+  // Look up college in Supabase
+  let foundCollege = null;
+  try {
+    const colleges = await getColleges();
+    foundCollege = colleges.find(
+      (c) =>
+        c.id === collegeId ||
+        c.id.includes(collegeId) ||
+        collegeId.includes(c.id) ||
+        c.name.toLowerCase() === decodeURIComponent(collegeId).toLowerCase()
+    );
+  } catch (err) {
+    console.warn('Failed to fetch college list from Supabase:', err);
+  }
 
   if (foundCollege) {
     redirect(
@@ -20,6 +30,6 @@ export default async function CollegePage({
     );
   }
 
-  // Fallback to search by ID
+  // Fallback to search by ID or name
   redirect(`/search?q=${encodeURIComponent(collegeId)}`);
 }

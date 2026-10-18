@@ -2,7 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Enums
-CREATE TYPE property_type AS ENUM ('PG', 'Hostel', 'Room');
+CREATE TYPE property_type AS ENUM ('PG', 'Hostel', 'Room', 'PG AND Hostel');
 CREATE TYPE gender_target AS ENUM ('boys', 'girls', 'co-ed');
 CREATE TYPE sharing_type AS ENUM ('single', '2-sharing', '3-sharing', '4-plus-sharing');
 CREATE TYPE verification_status AS ENUM ('verified', 'unverified', 'demo');

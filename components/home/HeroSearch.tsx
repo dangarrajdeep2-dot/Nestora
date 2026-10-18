@@ -189,35 +189,38 @@ export function HeroSearch({ onLocationDenied }: HeroSearchProps) {
             <button
               type="button"
               onClick={() => setSelectedGender('all')}
-              className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+              className={`flex-1 sm:flex-initial px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all text-center whitespace-nowrap ${
                 selectedGender === 'all'
                   ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              All Stays
+              <span className="sm:hidden">All</span>
+              <span className="hidden sm:inline">All Stays</span>
             </button>
             <button
               type="button"
               onClick={() => setSelectedGender('boys')}
-              className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+              className={`flex-1 sm:flex-initial px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all text-center whitespace-nowrap ${
                 selectedGender === 'boys'
                   ? 'bg-emerald-600 dark:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              Boys PG / Hostel
+              <span className="sm:hidden">Boys</span>
+              <span className="hidden sm:inline">Boys PG / Hostel</span>
             </button>
             <button
               type="button"
               onClick={() => setSelectedGender('girls')}
-              className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+              className={`flex-1 sm:flex-initial px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all text-center whitespace-nowrap ${
                 selectedGender === 'girls'
                   ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20 font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              Girls PG / Hostel
+              <span className="sm:hidden">Girls</span>
+              <span className="hidden sm:inline">Girls PG / Hostel</span>
             </button>
           </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeImage } from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import { 
@@ -29,8 +29,41 @@ import { Property, Review } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { useSavedProperties } from '@/lib/utils/favorites';
 import { EnquiryModal } from './EnquiryModal';
+import { AuthModal } from '@/components/auth/AuthModal';
+import { supabase } from '@/lib/supabase/client';
 import { ReviewModal } from './ReviewModal';
 import { GoogleMapLocation } from './GoogleMapLocation';
+
+function cleanWhatsAppNumber(whatsapp?: string, phone?: string): string {
+  const raw = whatsapp || phone || '';
+  if (!raw || raw === 'N/A' || raw === 'null' || raw === 'undefined') return '';
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) return `91${digits}`;
+  if (digits.length === 12 && digits.startsWith('91')) return digits;
+  if (digits.length > 10 && digits.startsWith('0')) return `91${digits.slice(1)}`;
+  return digits.length >= 10 ? digits.slice(-10) : digits;
+}
+
+function cleanCallablePhone(phone?: string, whatsapp?: string): string {
+  const raw = phone || whatsapp || '';
+  if (!raw || raw === 'N/A' || raw === 'null' || raw === 'undefined') return '';
+  const digits = raw.replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.length === 10) return `+91${digits}`;
+  if (digits.length === 12 && digits.startsWith('91')) return `+${digits}`;
+  if (digits.length > 10 && digits.startsWith('0')) return `+91${digits.slice(1)}`;
+  return `+91${digits.slice(-10)}`;
+}
+
+function formatDisplayPhone(phone?: string, whatsapp?: string): string {
+  const cleaned = cleanCallablePhone(phone, whatsapp);
+  if (!cleaned) return '';
+  const digits = cleaned.replace(/\D/g, '').slice(-10);
+  if (digits.length === 10) {
+    return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+  }
+  return cleaned;
+}
 
 export function PropertyDetailsView({ property }: { property: Property }) {
   const { isSaved, toggle } = useSavedProperties();
@@ -38,6 +71,9 @@ export function PropertyDetailsView({ property }: { property: Property }) {
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [studentProfile, setStudentProfile] = useState<{ name: string; college: string } | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedRoomForEnquiry, setSelectedRoomForEnquiry] = useState<string | undefined>();
   const [isCopied, setIsCopied] = useState(false);
@@ -65,13 +101,142 @@ export function PropertyDetailsView({ property }: { property: Property }) {
     }));
   };
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkAuthStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!isMounted) return;
+
+        let authed = Boolean(user);
+        if (user) {
+          const { data: adminRecord } = await supabase
+            .from('admin_users')
+            .select('id')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (!isMounted) return;
+          if (adminRecord) {
+            authed = false;
+          } else {
+            const { data: profile } = await supabase
+              .from('users')
+              .select('name, college')
+              .eq('id', user.id)
+              .maybeSingle();
+
+            if (profile && isMounted) {
+              setStudentProfile({
+                name: profile.name || '',
+                college: profile.college || '',
+              });
+            }
+          }
+        }
+
+        setIsAuthenticated(authed);
+
+        if (typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search);
+          if (params.get('enquire') === 'true') {
+            if (authed) {
+              setIsEnquiryModalOpen(true);
+            } else {
+              setIsAuthModalOpen(true);
+            }
+          }
+        }
+      } catch {
+        if (isMounted) {
+          setIsAuthenticated(false);
+        }
+      }
+    };
+
+    checkAuthStatus();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!session?.user) {
+        if (isMounted) {
+          setIsAuthenticated(false);
+          setStudentProfile(null);
+        }
+      } else {
+        const { data: adminRecord } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (isMounted) {
+          setIsAuthenticated(!adminRecord);
+          if (!adminRecord) {
+            const { data: profile } = await supabase
+              .from('users')
+              .select('name, college')
+              .eq('id', session.user.id)
+              .maybeSingle();
+
+            if (profile && isMounted) {
+              setStudentProfile({
+                name: profile.name || '',
+                college: profile.college || '',
+              });
+            }
+          }
+        }
+      }
+    });
+
+    const handleAuthChange = () => {
+      if (isMounted) {
+        checkAuthStatus();
+      }
+    };
+
+    window.addEventListener('nestora_auth_changed', handleAuthChange);
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+      window.removeEventListener('nestora_auth_changed', handleAuthChange);
+    };
+  }, []);
+
+  const handleOpenEnquiry = (roomType?: string) => {
+    if (roomType) {
+      setSelectedRoomForEnquiry(roomType);
+    }
+    if (!isAuthenticated) {
+      setIsAuthModalOpen(true);
+    } else {
+      setIsEnquiryModalOpen(true);
+    }
+  };
+
   const images = property.images && property.images.length > 0 
     ? property.images 
     : ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1000&q=80'];
 
-  const encodedWhatsAppMsg = encodeURIComponent(
-    `Hello ${property.owner.name}, I am a student interested in your stay "${property.title}" in ${property.area}, ${property.city} (Listed on Nestora). Is a bed currently available?`
-  );
+  const ownerWhatsApp = cleanWhatsAppNumber(property.owner.whatsapp, property.owner.phone);
+  const callPhoneNumber = cleanCallablePhone(property.owner.phone, property.owner.whatsapp);
+  const displayPhone = formatDisplayPhone(property.owner.phone, property.owner.whatsapp);
+
+  const handleCallOwner = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!callPhoneNumber) return;
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(callPhoneNumber).catch(() => {});
+    }
+    window.location.href = `tel:${callPhoneNumber}`;
+  };
+
+  const studentGreeting = studentProfile?.name
+    ? `Hello ${property.owner.name}, my name is ${studentProfile.name}${studentProfile.college ? ` (Student at ${studentProfile.college})` : ''}. I am interested in your stay "${property.title}" in ${property.area}, ${property.city} (Listed on Nestora). Is a bed currently available?`
+    : `Hello ${property.owner.name}, I am a student interested in your stay "${property.title}" in ${property.area}, ${property.city} (Listed on Nestora). Is a bed currently available?`;
+
+  const encodedWhatsAppMsg = encodeURIComponent(studentGreeting);
 
   const handleShare = () => {
     if (navigator.share) {
@@ -141,6 +306,7 @@ export function PropertyDetailsView({ property }: { property: Property }) {
                   src={images[activeImageIndex]}
                   alt={property.title}
                   fill
+                  sizes="(max-width: 1024px) 100vw, 750px"
                   priority
                   className="object-cover transition-all duration-300"
                 />
@@ -150,7 +316,7 @@ export function PropertyDetailsView({ property }: { property: Property }) {
                   <span className={`text-xs font-bold px-3 py-1 rounded-full shadow-md backdrop-blur-md ${
                     property.gender === 'girls' ? 'bg-rose-500 text-white' : property.gender === 'boys' ? 'bg-emerald-600 text-white' : 'bg-purple-600 text-white'
                   }`}>
-                    {property.gender === 'girls' ? 'Girls Only' : property.gender === 'boys' ? 'Boys Only' : 'Co-ed'}
+                    {property.gender === 'girls' ? 'Girls Only' : property.gender === 'boys' ? 'Boys Only' : 'Boys & Girls'}
                   </span>
                   <span className="text-xs font-bold px-3 py-1 rounded-full bg-black/75 text-white backdrop-blur-md shadow-md">
                     {property.type}
@@ -200,7 +366,7 @@ export function PropertyDetailsView({ property }: { property: Property }) {
                         activeImageIndex === idx ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-transparent opacity-70 hover:opacity-100'
                       }`}
                     >
-                      <SafeImage src={img} alt="Thumbnail" fill className="object-cover" />
+                      <SafeImage src={img} alt="Thumbnail" fill sizes="80px" className="object-cover" />
                     </button>
                   ))}
                 </div>
@@ -330,16 +496,30 @@ export function PropertyDetailsView({ property }: { property: Property }) {
                       </ul>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedRoomForEnquiry(room.roomType);
-                        setIsEnquiryModalOpen(true);
-                      }}
-                      className="w-full py-2 bg-emerald-500/10 hover:bg-emerald-600 text-emerald-700 dark:text-emerald-300 hover:text-white rounded-xl text-xs font-bold transition text-center cursor-pointer border border-emerald-500/20 hover:border-transparent"
-                    >
-                      Enquire for this room
-                    </button>
+                    {ownerWhatsApp ? (
+                      <a
+                        href={`https://wa.me/${ownerWhatsApp}?text=${encodeURIComponent(
+                          studentProfile?.name
+                            ? `Hello ${property.owner.name}, my name is ${studentProfile.name}${studentProfile.college ? ` (Student at ${studentProfile.college})` : ''}. I am interested in ${room.roomType} room (₹${room.rent.toLocaleString()}/mo) at "${property.title}" in ${property.area}, ${property.city}. Is a bed currently available?`
+                            : `Hello ${property.owner.name}, I am interested in ${room.roomType} room (₹${room.rent.toLocaleString()}/mo) at "${property.title}" in ${property.area}, ${property.city}. Is a bed currently available?`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm shadow-emerald-500/20"
+                      >
+                        <MessageCircle size={14} />
+                        <span>Chat on WhatsApp</span>
+                      </a>
+                    ) : callPhoneNumber ? (
+                      <a
+                        href={`tel:${callPhoneNumber}`}
+                        onClick={handleCallOwner}
+                        className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Phone size={14} />
+                        <span>Call Owner ({displayPhone})</span>
+                      </a>
+                    ) : null}
                   </div>
                 ))}
               </div>
@@ -609,36 +789,28 @@ export function PropertyDetailsView({ property }: { property: Property }) {
 
               {/* Action Buttons in Emerald Theme */}
               <div className="space-y-3">
-                {/* Send Enquiry Button */}
-                <button
-                  onClick={() => setIsEnquiryModalOpen(true)}
-                  className="btn-3d w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-2xl font-bold text-sm shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition cursor-pointer"
-                >
-                  <Send size={16} />
-                  <span>Send Free Enquiry</span>
-                </button>
-
-                {/* WhatsApp Button */}
-                {property.owner.whatsapp && (
+                {/* WhatsApp Button as Primary Action */}
+                {ownerWhatsApp && (
                   <a
-                    href={`https://wa.me/91${property.owner.whatsapp}?text=${encodedWhatsAppMsg}`}
+                    href={`https://wa.me/${ownerWhatsApp}?text=${encodedWhatsAppMsg}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn-3d w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold text-sm shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition"
+                    className="btn-3d w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-sm shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition"
                   >
-                    <MessageCircle size={17} />
+                    <MessageCircle size={18} />
                     <span>Chat on WhatsApp</span>
                   </a>
                 )}
 
                 {/* Call Owner Button */}
-                {property.owner.phone && (
+                {callPhoneNumber && (
                   <a
-                    href={`tel:+91${property.owner.phone}`}
-                    className="btn-3d w-full py-3 px-4 glass-card hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition border border-slate-200 dark:border-slate-800"
+                    href={`tel:${callPhoneNumber}`}
+                    onClick={handleCallOwner}
+                    className="btn-3d w-full py-3.5 px-4 glass-card hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition border border-slate-200 dark:border-slate-800 cursor-pointer shadow-sm"
                   >
                     <Phone size={16} />
-                    <span>Call Owner (+91 {property.owner.phone})</span>
+                    <span>Call Owner ({displayPhone})</span>
                   </a>
                 )}
               </div>
@@ -673,35 +845,29 @@ export function PropertyDetailsView({ property }: { property: Property }) {
           </div>
 
           <div className="flex items-center gap-2">
-            {property.owner.whatsapp && (
+            {callPhoneNumber && (
               <a
-                href={`https://wa.me/91${property.owner.whatsapp}?text=${encodedWhatsAppMsg}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2.5 bg-emerald-500 text-white rounded-xl flex items-center justify-center shadow"
-                aria-label="WhatsApp"
-              >
-                <MessageCircle size={18} />
-              </a>
-            )}
-
-            {property.owner.phone && (
-              <a
-                href={`tel:+91${property.owner.phone}`}
-                className="p-2.5 bg-slate-900 dark:bg-slate-800 text-white rounded-xl flex items-center justify-center shadow"
-                aria-label="Call"
+                href={`tel:${callPhoneNumber}`}
+                onClick={handleCallOwner}
+                className="p-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-xl flex items-center justify-center shadow-md cursor-pointer"
+                aria-label="Call Owner"
+                title={`Call Owner: ${displayPhone}`}
               >
                 <Phone size={18} />
               </a>
             )}
 
-            <button
-              onClick={() => setIsEnquiryModalOpen(true)}
-              className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-500/25 flex items-center gap-1.5"
-            >
-              <Send size={14} />
-              <span>Enquire</span>
-            </button>
+            {ownerWhatsApp && (
+              <a
+                href={`https://wa.me/${ownerWhatsApp}?text=${encodedWhatsAppMsg}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-500/25 flex items-center gap-1.5"
+              >
+                <MessageCircle size={16} />
+                <span>Chat on WhatsApp</span>
+              </a>
+            )}
           </div>
         </div>
       </div>
@@ -712,6 +878,29 @@ export function PropertyDetailsView({ property }: { property: Property }) {
         isOpen={isEnquiryModalOpen}
         onClose={() => setIsEnquiryModalOpen(false)}
         selectedRoomType={selectedRoomForEnquiry}
+        onRequireAuth={() => setIsAuthModalOpen(true)}
+      />
+
+      {/* Authentication Prompt Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        title="Sign in to Send Enquiry"
+        subtitle={`Sign in to connect directly with property owners and send enquiries for ${property.title}.`}
+        nextParam={`/property/${property.id}?enquire=true`}
+        onSuccess={() => {
+          setIsAuthenticated(true);
+          setIsAuthModalOpen(false);
+          setIsEnquiryModalOpen(true);
+        }}
+      />
+
+      {/* Student Review & Rating Modal */}
+      <ReviewModal
+        property={property}
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        onReviewSubmitted={handleReviewSubmitted}
       />
 
       {/* Student Review & Rating Modal */}
