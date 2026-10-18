@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { invalidatePropertiesCache } from '@/lib/api/properties';
-import { MOCK_PROPERTIES } from '@/lib/api/mockData';
 
 export async function requireAdmin(supabase: SupabaseClient) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -575,29 +574,7 @@ export interface AdminReview {
 }
 
 function getFallbackAdminReviews(): AdminReview[] {
-  const list: AdminReview[] = [];
-  for (const prop of MOCK_PROPERTIES) {
-    if (prop.reviews && prop.reviews.length > 0) {
-      for (const rev of prop.reviews) {
-        list.push({
-          id: rev.id,
-          property_id: prop.id,
-          property_title: prop.title,
-          property_area: prop.area,
-          property_city: prop.city,
-          author_name: rev.authorName,
-          college: rev.college,
-          course: rev.course || '',
-          rating: rev.rating,
-          comment: rev.comment,
-          date: rev.date,
-          verified_stay: Boolean(rev.verifiedStay),
-          helpful_count: rev.helpfulCount || 0,
-        });
-      }
-    }
-  }
-  return list;
+  return [];
 }
 
 export async function getAdminReviews(): Promise<AdminReview[]> {

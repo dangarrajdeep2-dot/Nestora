@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FilterState, Property, PropertyType, College, LocationRef, Enquiry, Review } from '@/types';
-import { MOCK_PROPERTIES, MOCK_COLLEGES, POPULAR_LOCATIONS } from './mockData';
+import { KNOWN_COLLEGES, POPULAR_LOCATIONS } from './mockData';
 import { calculateDistance } from '@/lib/utils/distance';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 
@@ -85,7 +84,7 @@ let cachedProperties: Property[] | null = null;
 let lastFetch = 0;
 let inFlightFetchAll: Promise<Property[]> | null = null;
 
-let cachedColleges: College[] = [...MOCK_COLLEGES];
+let cachedColleges: College[] = [...KNOWN_COLLEGES];
 let isCollegesFetched = false;
 let isCollegesFetching = false;
 
@@ -143,7 +142,7 @@ function normalizeSearchText(str?: string | null): string {
 
 async function fetchAllProperties(): Promise<Property[]> {
   if (!isSupabaseConfigured) {
-    return mergeLocalReviews(MOCK_PROPERTIES);
+    return [];
   }
   
   if (cachedProperties && Date.now() - lastFetch < 60000) {
@@ -157,7 +156,7 @@ async function fetchAllProperties(): Promise<Property[]> {
   inFlightFetchAll = (async () => {
     try {
       const timeoutPromise = new Promise<{ data: any; error: any }>((resolve) =>
-        setTimeout(() => resolve({ data: null, error: { message: 'Timeout fetching from Supabase' } }), 2500)
+        setTimeout(() => resolve({ data: null, error: { message: 'Timeout fetching from Supabase' } }), 5000)
       );
 
       const queryPromise = supabase
@@ -177,15 +176,15 @@ async function fetchAllProperties(): Promise<Property[]> {
       const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
       if (error) {
-        console.warn('⚠️ SHOWING MOCK/CACHED DATA: Supabase query failed or timed out.', error.message);
+        console.warn('⚠️ Supabase properties query error:', error.message);
         if (cachedProperties) return mergeLocalReviews(cachedProperties);
-        return mergeLocalReviews(MOCK_PROPERTIES);
+        return [];
       }
 
       if (!data || data.length === 0) {
-        console.warn('⚠️ SHOWING MOCK DATA: Supabase returned no properties.');
+        console.warn('⚠️ Supabase returned 0 properties.');
         if (cachedProperties) return mergeLocalReviews(cachedProperties);
-        return mergeLocalReviews(MOCK_PROPERTIES);
+        return [];
       }
 
       const mappedProperties: Property[] = data.map((row: any) => {
@@ -314,7 +313,7 @@ async function fetchAllProperties(): Promise<Property[]> {
     } catch (err) {
       console.error('Error in fetchAllProperties:', err);
       if (cachedProperties) return mergeLocalReviews(cachedProperties);
-      return mergeLocalReviews(MOCK_PROPERTIES);
+      return [];
     } finally {
       inFlightFetchAll = null;
     }
@@ -605,8 +604,8 @@ export async function getColleges(): Promise<College[]> {
           }));
 
           const seen = new Set(dbColleges.map((c) => c.name.toLowerCase()));
-          const extraMocks = MOCK_COLLEGES.filter((c) => !seen.has(c.name.toLowerCase()));
-          cachedColleges = [...dbColleges, ...extraMocks];
+          const extraColleges = KNOWN_COLLEGES.filter((c) => !seen.has(c.name.toLowerCase()));
+          cachedColleges = [...dbColleges, ...extraColleges];
           isCollegesFetched = true;
         }
       } catch (err) {
