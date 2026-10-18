@@ -132,9 +132,12 @@ function getCityCoordinates(city?: string): { lat: number; lng: number } {
 function normalizeSearchText(str?: string | null): string {
   return (str || '')
     .toLowerCase()
-    .replace(/[,.\-_]/g, ' ')
+    .replace(/[,.\-_/]/g, ' ')
     .replace(/\s+/g, ' ')
-    .replace(/v/g, 'w') // e.g. marvadi -> marwadi
+    .replace(/\bmarvadi\b/g, 'marwadi')
+    .replace(/\bsaurstra\b|\bsaurastra\b/g, 'saurashtra')
+    .replace(/\buni\b|\buniv\b|\bvarsity\b/g, 'university')
+    .replace(/\bclg\b|\bcllg\b|\bcolg\b/g, 'college')
     .trim();
 }
 
@@ -331,18 +334,33 @@ export async function getProperties(filters: FilterState = {}): Promise<Property
   let searchLng = filters.lng;
   let matchedCollege: College | undefined = undefined;
 
-  // Detect if search query matches any college name or shortcode (with spelling normalization, e.g. marvadi -> marwadi)
+  // Detect if search query matches any college name or shortcode (with spelling normalization, e.g. marvadi -> marwadi, saurstra -> saurashtra)
   if (filters.query && filters.query.trim()) {
     const qNorm = normalizeSearchText(filters.query);
+    const qWords = qNorm.split(' ').filter(Boolean);
+
     matchedCollege = activeColleges.find((col) => {
       const nameNorm = normalizeSearchText(col.name);
       const shortNorm = col.shortName ? normalizeSearchText(col.shortName) : '';
-      return (
-        nameNorm === qNorm ||
-        nameNorm.includes(qNorm) ||
-        qNorm.includes(nameNorm) ||
-        (shortNorm && (shortNorm === qNorm || qNorm.includes(shortNorm)))
-      );
+
+      // Exact name match
+      if (nameNorm === qNorm) return true;
+
+      // Substring match between query and college full name
+      if (nameNorm.includes(qNorm) || qNorm.includes(nameNorm)) return true;
+
+      // Check key college name words (e.g. 'saurashtra', 'marwadi', 'atmiya', 'darshan')
+      const nameWords = nameNorm.split(' ').filter((w) => w !== 'university' && w !== 'college' && w.length > 2);
+      if (nameWords.length > 0 && nameWords.some((w) => qWords.includes(w) || qNorm.includes(w))) {
+        return true;
+      }
+
+      // Shortcode match (MUST match the full query or be a standalone word, NEVER a raw substring like 'au' inside 'saurashtra'!)
+      if (shortNorm && (shortNorm === qNorm || qWords.includes(shortNorm))) {
+        return true;
+      }
+
+      return false;
     });
 
     // Auto-assign college GPS coordinates if not explicitly passed
@@ -372,16 +390,25 @@ export async function getProperties(filters: FilterState = {}): Promise<Property
     const q = filters.query.toLowerCase().trim();
     if (matchedCollege) {
       // College-first search:
-      // CRITICAL: Filter properties to the same city as the college (or directly linked to the college)
-      // For instance, Marwadi University (Rajkot) must NEVER show properties in Vadodara or Ahmedabad!
+      // CRITICAL: Filter properties strictly to the same city as the college
+      // For instance, Saurashtra University or Marwadi University (Rajkot) must NEVER show properties in Ahmedabad or Vadodara!
+      const targetCity = matchedCollege.city.toLowerCase().trim();
       results = results.filter((prop) => {
-        const sameCity = prop.city && prop.city.toLowerCase() === matchedCollege!.city.toLowerCase();
+        const propCity = (prop.city || '').toLowerCase().trim();
+        const sameCity = propCity === targetCity || propCity.includes(targetCity) || targetCity.includes(propCity);
         const directCollegeMatch = prop.nearbyCollegeName && (
           normalizeSearchText(prop.nearbyCollegeName).includes(normalizeSearchText(matchedCollege!.name)) ||
           normalizeSearchText(matchedCollege!.name).includes(normalizeSearchText(prop.nearbyCollegeName))
         );
 
-        return sameCity || directCollegeMatch;
+        if (sameCity || directCollegeMatch) {
+          // Exclude any property if distance is unreasonably far (> 25km from the college)
+          if (prop.distanceKm !== undefined && prop.distanceKm > 25) {
+            return false;
+          }
+          return true;
+        }
+        return false;
       });
     } else {
       results = results.filter((prop) => {

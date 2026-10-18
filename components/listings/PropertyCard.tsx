@@ -166,7 +166,7 @@ export function PropertyCard({ property, viewMode = 'grid', referenceLocation }:
               <span className="text-slate-400 dark:text-slate-500">({property.reviewCount})</span>
             </div>
 
-            {property.distanceKm !== undefined && (
+            {property.distanceKm !== undefined && property.distanceKm <= 20 && (
               <span className="flex items-center font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full text-[11px] border border-emerald-500/20">
                 <Navigation size={11} className="mr-1 text-emerald-600 dark:text-emerald-400" />
                 {property.distanceKm.toFixed(1)} km away
@@ -174,8 +174,8 @@ export function PropertyCard({ property, viewMode = 'grid', referenceLocation }:
             )}
           </div>
 
-          {/* Prominent distance from searched college/location */}
-          {referenceLocation && property.distanceKm !== undefined && (
+          {/* Prominent distance from searched college/location (hidden if > 20km) */}
+          {referenceLocation && property.distanceKm !== undefined && property.distanceKm <= 20 && (
             <div className="mb-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/25 text-[11px] font-bold text-emerald-800 dark:text-emerald-300 w-fit">
               <GraduationCap size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>{referenceLocation} se <strong className="text-emerald-700 dark:text-emerald-300">{property.distanceKm.toFixed(1)} km door</strong></span>
