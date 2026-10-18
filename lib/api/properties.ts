@@ -89,10 +89,6 @@ let cachedColleges: College[] = [...MOCK_COLLEGES];
 let isCollegesFetched = false;
 let isCollegesFetching = false;
 
-let cachedColleges: College[] = [...MOCK_COLLEGES];
-let isCollegesFetched = false;
-let isCollegesFetching = false;
-
 export function invalidatePropertiesCache(): void {
   cachedProperties = null;
   lastFetch = 0;
