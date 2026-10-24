@@ -8,6 +8,9 @@ import { ThemeProvider } from '@/lib/utils/theme';
 export const metadata: Metadata = {
   title: 'Nestora — Find Your Perfect Stay Near Your College',
   description: 'Find verified PGs, hostels, and rooms near your college or any searched locality. Transparent rent, direct owner contact, zero brokerage.',
+  verification: {
+    google: '68fjs0gylVfseLdWyxfF4NWhvFFbZcAhWvJInMjUUMA',
+  },
   icons: {
     icon: [
       { url: '/favicon.png', type: 'image/png' },
