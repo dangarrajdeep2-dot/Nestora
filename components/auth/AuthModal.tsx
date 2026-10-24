@@ -107,7 +107,7 @@ export function AuthModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1B1530]/60 backdrop-blur-md animate-in fade-in duration-200"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
@@ -118,7 +118,7 @@ export function AuthModal({
       aria-labelledby="auth-modal-title"
     >
       <div 
-        className="relative w-full max-w-[420px] bg-slate-900/95 dark:bg-slate-950/95 border border-slate-800/90 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4 text-slate-100 animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-200 motion-reduce:animate-none backdrop-blur-2xl max-h-[92vh] overflow-y-auto"
+        className="relative w-full max-w-[420px] bg-white/95 dark:bg-[#161024]/95 border border-white/80 dark:border-white/10 rounded-[24px] p-6 sm:p-7 shadow-[0_20px_50px_rgba(123,94,167,0.25)] space-y-4 text-[#1B1530] dark:text-white animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-200 motion-reduce:animate-none backdrop-blur-2xl max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -126,30 +126,30 @@ export function AuthModal({
           type="button"
           onClick={onClose}
           aria-label="Close dialog"
-          className="absolute top-4 right-4 p-2 rounded-2xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+          className="absolute top-4 right-4 p-2 rounded-full text-[#6B6580] hover:text-[#1B1530] dark:text-purple-200/70 dark:hover:text-white bg-white/70 dark:bg-white/10 border border-white/80 dark:border-white/10 transition cursor-pointer"
         >
           <X size={18} />
         </button>
 
         {/* Brand Header */}
         <div className="text-center space-y-1.5 pt-1">
-          <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shadow-sm mb-0.5">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#D9C8F0]/60 border border-[#7B5EA7]/20 text-[#7B5EA7] dark:bg-[#7B5EA7]/30 dark:text-purple-200 shadow-sm mb-0.5 mx-auto">
             <GraduationCap size={24} />
           </div>
           <h2
             id="auth-modal-title"
-            className="text-xl sm:text-2xl font-black tracking-tight text-white"
+            className="font-heading text-2xl sm:text-3xl uppercase tracking-tight text-[#1B1530] dark:text-white"
           >
             {title}
           </h2>
-          <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">
+          <p className="text-xs text-[#6B6580] dark:text-purple-200/70 leading-relaxed max-w-xs mx-auto">
             {subtitle}
           </p>
         </div>
 
         {/* Error notification */}
         {error && (
-          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold">
+          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-semibold">
             {error}
           </div>
         )}
@@ -166,8 +166,8 @@ export function AuthModal({
 
         {/* Divider */}
         <div className="relative flex items-center justify-center my-1">
-          <div className="w-full border-t border-slate-800" />
-          <span className="absolute bg-slate-900 dark:bg-slate-950 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="w-full border-t border-[#D9C8F0]/60 dark:border-white/10" />
+          <span className="absolute bg-white dark:bg-[#161024] px-3 text-[10px] font-bold uppercase tracking-wider text-[#6B6580] dark:text-purple-300/70">
             OR
           </span>
         </div>
@@ -176,8 +176,8 @@ export function AuthModal({
         <form onSubmit={handleSubmit} className="space-y-3.5">
           {/* Email */}
           <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-              <Mail size={13} className="text-emerald-400" />
+            <label className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#6B6580] dark:text-purple-200/80 flex items-center gap-1.5">
+              <Mail size={13} className="text-[#7B5EA7]" />
               <span>Email Address</span>
             </label>
             <input
@@ -186,21 +186,21 @@ export function AuthModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="student@university.edu"
-              className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-slate-950/80 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
+              className="w-full px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm bg-white/70 dark:bg-black/30 border border-white/80 dark:border-white/10 text-[#1B1530] dark:text-white placeholder-[#6B6580]/50 focus:outline-none focus:ring-2 focus:ring-[#7B5EA7]/25 focus:border-[#7B5EA7] transition"
             />
           </div>
 
           {/* Password */}
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                <Lock size={13} className="text-emerald-400" />
+              <label className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#6B6580] dark:text-purple-200/80 flex items-center gap-1.5">
+                <Lock size={13} className="text-[#7B5EA7]" />
                 <span>Password</span>
               </label>
               <Link
                 href="/forgot-password"
                 onClick={onClose}
-                className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 hover:underline transition"
+                className="text-[11px] font-bold text-[#7B5EA7] hover:text-[#4B2E83] dark:text-purple-300 dark:hover:underline transition"
               >
                 Forgot password?
               </Link>
@@ -211,7 +211,7 @@ export function AuthModal({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-slate-950/80 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
+              className="w-full px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm bg-white/70 dark:bg-black/30 border border-white/80 dark:border-white/10 text-[#1B1530] dark:text-white placeholder-[#6B6580]/50 focus:outline-none focus:ring-2 focus:ring-[#7B5EA7]/25 focus:border-[#7B5EA7] transition"
             />
           </div>
 
@@ -219,7 +219,7 @@ export function AuthModal({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full mt-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 active:scale-[0.99]"
+            className="w-full mt-2 py-3 px-4 rounded-full text-xs sm:text-sm font-bold uppercase tracking-[0.08em] text-white bg-[#7B5EA7] hover:bg-[#4B2E83] transition duration-300 hover:-translate-y-0.5 shadow-[0_10px_25px_rgba(123,94,167,0.3)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
           >
             {isSubmitting ? (
               <>
@@ -230,19 +230,20 @@ export function AuthModal({
               <>
                 <LogIn size={15} />
                 <span>Sign In to Student Account</span>
+                <span>→</span>
               </>
             )}
           </button>
         </form>
 
         {/* Footer: Sign Up & Guest Browsing */}
-        <div className="pt-2 border-t border-slate-800/80 text-center space-y-2">
-          <div className="text-xs text-slate-400">
+        <div className="pt-2 border-t border-[#D9C8F0]/50 dark:border-white/10 text-center space-y-2">
+          <div className="text-xs text-[#6B6580] dark:text-purple-200/70">
             New to Nestora?{' '}
             <Link
               href={`/signup?next=${encodeURIComponent(nextParam)}`}
               onClick={onClose}
-              className="font-bold text-emerald-400 hover:underline"
+              className="font-bold text-[#7B5EA7] dark:text-purple-300 hover:underline"
             >
               Create free account
             </Link>
@@ -252,7 +253,7 @@ export function AuthModal({
             <button
               type="button"
               onClick={onClose}
-              className="text-[11px] text-slate-500 hover:text-slate-300 transition cursor-pointer underline-offset-4 hover:underline"
+              className="text-[11px] text-[#6B6580] dark:text-purple-300/60 hover:text-[#1B1530] dark:hover:text-white transition cursor-pointer underline-offset-4 hover:underline"
             >
               Continue browsing as guest
             </button>

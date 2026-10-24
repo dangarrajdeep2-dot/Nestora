@@ -10,10 +10,9 @@ import {
   PlusCircle, 
   User, 
   Home, 
-  Sun,
-  Moon,
-  Sparkles,
-  LogOut
+  Sun, 
+  Moon, 
+  LogOut 
 } from 'lucide-react';
 import { useSavedProperties } from '@/lib/utils/favorites';
 import { useTheme } from '@/lib/utils/theme';
@@ -155,11 +154,11 @@ export function Navbar() {
 
   return (
     <>
-      {/* Desktop Header */}
-      <header className="sticky top-0 z-30 transition-all duration-300 bg-white/75 dark:bg-slate-950/75 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/70 shadow-sm">
-        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
+      {/* Desktop Header: Soft Pastel Lavender Glassmorphism */}
+      <header className="sticky top-0 z-30 transition-all duration-300 bg-white/70 dark:bg-[#161024]/75 backdrop-blur-xl border-b border-white/80 dark:border-white/10 shadow-[0_4px_24px_rgba(123,94,167,0.08)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           
-          {/* Logo & Brand with Uploaded Icon */}
+          {/* Logo & Brand with Condensed Heading */}
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="relative w-10 h-10 flex items-center justify-center group-hover:scale-105 transition-all duration-200 shrink-0">
               <Image
@@ -172,23 +171,23 @@ export function Navbar() {
               />
             </div>
             <div>
-              <span className="text-xl sm:text-2xl font-black bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-500 dark:from-emerald-400 dark:via-teal-300 dark:to-cyan-400 bg-clip-text text-transparent tracking-tight">
+              <span className="text-2xl sm:text-3xl font-heading tracking-wider bg-gradient-to-r from-[#7B5EA7] via-[#9D7FD3] to-[#4B2E83] dark:from-[#D9C8F0] dark:via-[#9D7FD3] dark:to-[#E6DAF5] bg-clip-text text-transparent">
                 Nestora
               </span>
-              <span className="hidden sm:block text-[10px] text-emerald-600 dark:text-emerald-400 font-bold tracking-wider uppercase -mt-1">
+              <span className="hidden sm:block text-[10px] text-[#7B5EA7] dark:text-[#D9C8F0] font-bold tracking-[0.08em] uppercase -mt-1">
                 Student Stays
               </span>
             </div>
           </Link>
 
-          {/* Desktop Nav Links with Glassy Pill Styling */}
-          <nav className="hidden md:flex items-center gap-1.5 lg:gap-2 bg-slate-100/70 dark:bg-slate-900/60 p-1.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/60 backdrop-blur-md">
+          {/* Desktop Nav Links: Small Uppercase Letter-Spaced */}
+          <nav className="hidden md:flex items-center gap-1.5 lg:gap-2 bg-white/60 dark:bg-[#201438]/60 p-1.5 rounded-full border border-white/80 dark:border-white/10 backdrop-blur-md shadow-sm">
             <Link
               href="/"
-              className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ${
+              className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[0.08em] transition-all duration-200 ${
                 pathname === '/'
-                  ? 'text-emerald-700 dark:text-emerald-300 bg-white dark:bg-slate-800 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'text-[#4B2E83] dark:text-[#D9C8F0] bg-white dark:bg-[#2C1D4A] shadow-sm'
+                  : 'text-[#6B6580] dark:text-[#A89EC0] hover:text-[#1B1530] dark:hover:text-[#F3EDFB]'
               }`}
             >
               Home
@@ -196,10 +195,10 @@ export function Navbar() {
 
             <Link
               href="/search"
-              className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ${
+              className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[0.08em] transition-all duration-200 ${
                 pathname.startsWith('/search')
-                  ? 'text-emerald-700 dark:text-emerald-300 bg-white dark:bg-slate-800 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'text-[#4B2E83] dark:text-[#D9C8F0] bg-white dark:bg-[#2C1D4A] shadow-sm'
+                  : 'text-[#6B6580] dark:text-[#A89EC0] hover:text-[#1B1530] dark:hover:text-[#F3EDFB]'
               }`}
             >
               Find Stay
@@ -207,23 +206,23 @@ export function Navbar() {
 
             <Link
               href="/saved"
-              className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[0.08em] transition-all duration-200 flex items-center gap-1.5 ${
                 pathname === '/saved'
-                  ? 'text-rose-600 dark:text-rose-400 bg-white dark:bg-slate-800 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'text-[#7B5EA7] dark:text-[#D9C8F0] bg-white dark:bg-[#2C1D4A] shadow-sm'
+                  : 'text-[#6B6580] dark:text-[#A89EC0] hover:text-[#1B1530] dark:hover:text-[#F3EDFB]'
               }`}
             >
-              <Heart size={15} className={savedCount > 0 ? 'fill-rose-500 text-rose-500' : ''} />
+              <Heart size={14} className={savedCount > 0 ? 'fill-rose-500 text-rose-500' : ''} />
               <span>Saved</span>
               {savedCount > 0 && (
-                <span className="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">
+                <span className="bg-[#7B5EA7] text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">
                   {savedCount}
                 </span>
               )}
             </Link>
           </nav>
 
-          {/* Desktop Right Actions: Theme Toggle, List Property & Profile */}
+          {/* Desktop Right Actions: Theme Toggle, List Property & Dark Purple Pill CTA */}
           <div className="hidden md:flex items-center gap-3">
             
             {/* Dark / Light Mode Toggle */}
@@ -231,13 +230,13 @@ export function Navbar() {
               type="button"
               onClick={toggleTheme}
               aria-label="Toggle dark mode"
-              className="p-2.5 rounded-2xl bg-slate-100/80 dark:bg-slate-900/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-slate-800/80 transition-all duration-200 shadow-sm active:scale-95 cursor-pointer"
+              className="p-2.5 rounded-full bg-white/70 dark:bg-[#2C1D4A]/70 hover:bg-white dark:hover:bg-[#2C1D4A] text-[#4B2E83] dark:text-[#D9C8F0] border border-white/80 dark:border-white/10 transition-all duration-200 shadow-sm active:scale-95 cursor-pointer"
               title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Night Mode'}
             >
               {theme === 'dark' ? (
-                <Sun size={17} className="text-amber-400 animate-spin-once" />
+                <Sun size={17} className="text-amber-300 animate-spin-once" />
               ) : (
-                <Moon size={17} className="text-slate-700" />
+                <Moon size={17} className="text-[#4B2E83]" />
               )}
             </button>
 
@@ -245,18 +244,18 @@ export function Navbar() {
             <button
               type="button"
               onClick={() => setIsListModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 dark:border-emerald-500/30 transition-all active:scale-95 cursor-pointer backdrop-blur-md"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[0.08em] text-[#4B2E83] dark:text-[#D9C8F0] bg-[#D9C8F0]/40 dark:bg-[#7B5EA7]/20 hover:bg-[#D9C8F0]/70 border border-[#7B5EA7]/25 transition-all active:scale-95 cursor-pointer backdrop-blur-md"
             >
-              <PlusCircle size={15} className="text-emerald-600 dark:text-emerald-400" />
+              <PlusCircle size={15} className="text-[#7B5EA7] dark:text-[#D9C8F0]" />
               <span>List Property</span>
             </button>
 
-            {/* Auth CTA: Dynamic Student Session State */}
+            {/* Auth CTA: Right-Side Dark Purple Pill Button */}
             {currentUser ? (
               <div className="flex items-center gap-2">
                 <Link
                   href="/profile"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-bold text-white bg-slate-900 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all active:scale-95 shadow-md shadow-emerald-500/10"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[0.08em] text-white bg-[#4B2E83] hover:bg-[#7B5EA7] transition-all active:scale-95 shadow-md shadow-[#4B2E83]/20"
                 >
                   <User size={14} />
                   <span>{firstName}</span>
@@ -266,7 +265,7 @@ export function Navbar() {
                     type="submit"
                     aria-label="Sign out"
                     title="Sign Out"
-                    className="p-2 rounded-2xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 dark:hover:bg-rose-500/20 transition cursor-pointer"
+                    className="p-2 rounded-full text-[#6B6580] hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
                   >
                     <LogOut size={16} />
                   </button>
@@ -276,13 +275,13 @@ export function Navbar() {
               <div className="flex items-center gap-2">
                 <Link
                   href="/login"
-                  className="px-3.5 py-2 rounded-2xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
+                  className="px-3.5 py-2 text-xs font-bold uppercase tracking-[0.08em] text-[#6B6580] dark:text-[#A89EC0] hover:text-[#4B2E83] dark:hover:text-[#D9C8F0] transition"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/signup"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-bold text-white bg-slate-900 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all active:scale-95 shadow-md shadow-emerald-500/10"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-[0.08em] text-white bg-[#4B2E83] hover:bg-[#7B5EA7] transition-all active:scale-95 shadow-md shadow-[#4B2E83]/25"
                 >
                   <span>Sign Up</span>
                 </Link>
@@ -291,26 +290,26 @@ export function Navbar() {
           </div>
 
           {/* Mobile Header Right */}
-          <div className="flex md:hidden items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex md:hidden items-center gap-2 shrink-0">
             
             {/* Mobile Theme Toggle */}
             <button
               type="button"
               onClick={toggleTheme}
               aria-label="Toggle theme"
-              className="p-1.5 sm:p-2 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-800"
+              className="p-2 rounded-full bg-white/70 dark:bg-[#2C1D4A]/70 text-[#4B2E83] dark:text-[#D9C8F0] border border-white/80 dark:border-white/10"
             >
               {theme === 'dark' ? (
-                <Sun size={15} className="text-amber-400" />
+                <Sun size={15} className="text-amber-300" />
               ) : (
-                <Moon size={15} className="text-slate-700" />
+                <Moon size={15} className="text-[#4B2E83]" />
               )}
             </button>
 
             {/* Mobile Saved Heart */}
             <Link
               href="/saved"
-              className="relative p-1.5 sm:p-2 text-slate-700 dark:text-slate-300 hover:text-rose-500"
+              className="relative p-2 text-[#4B2E83] dark:text-[#D9C8F0] hover:text-rose-500"
               aria-label="Saved properties"
             >
               <Heart size={18} className={savedCount > 0 ? 'fill-rose-500 text-rose-500' : ''} />
@@ -324,9 +323,9 @@ export function Navbar() {
             {/* Mobile List Stay */}
             <button
               onClick={() => setIsListModalOpen(true)}
-              className="text-[11px] font-bold px-2 sm:px-2.5 py-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 rounded-xl border border-emerald-500/20 whitespace-nowrap"
+              className="text-[11px] font-bold uppercase tracking-[0.08em] px-3 py-1.5 bg-[#D9C8F0]/50 dark:bg-[#7B5EA7]/20 text-[#4B2E83] dark:text-[#D9C8F0] rounded-full border border-[#7B5EA7]/25 whitespace-nowrap"
             >
-              + List Stay
+              + List
             </button>
 
             {/* Mobile Sign In Button (When signed out) */}
@@ -334,7 +333,7 @@ export function Navbar() {
               <button
                 type="button"
                 onClick={() => setIsAuthModalOpen(true)}
-                className="text-[11px] font-bold px-2.5 py-1.5 bg-slate-900 dark:bg-emerald-600 text-white rounded-xl shadow-sm transition active:scale-95 cursor-pointer"
+                className="text-[11px] font-bold uppercase tracking-[0.08em] px-3.5 py-1.5 bg-[#4B2E83] text-white rounded-full shadow-sm transition active:scale-95 cursor-pointer"
               >
                 Sign In
               </button>
@@ -344,32 +343,32 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation Bar (Glassy & Dark Mode Ready) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-t border-slate-200/60 dark:border-slate-800/80 z-40 px-3 py-2 transition-colors">
+      {/* Mobile Bottom Navigation Bar: Soft Lilac Glassmorphic */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/85 dark:bg-[#161024]/85 backdrop-blur-xl border-t border-white/80 dark:border-white/10 z-40 px-3 py-2 transition-colors shadow-lg">
         <div className="flex items-center justify-around max-w-md mx-auto">
           
           <Link
             href="/"
             className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition ${
               pathname === '/' 
-                ? 'text-emerald-600 dark:text-emerald-400 font-bold' 
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                ? 'text-[#7B5EA7] dark:text-[#D9C8F0] font-bold' 
+                : 'text-[#6B6580] dark:text-[#A89EC0] hover:text-[#1B1530]'
             }`}
           >
             <Home size={19} />
-            <span className="text-[10px]">Home</span>
+            <span className="text-[10px] uppercase tracking-[0.06em]">Home</span>
           </Link>
 
           <Link
             href="/search"
             className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition ${
               pathname.startsWith('/search') 
-                ? 'text-emerald-600 dark:text-emerald-400 font-bold' 
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                ? 'text-[#7B5EA7] dark:text-[#D9C8F0] font-bold' 
+                : 'text-[#6B6580] dark:text-[#A89EC0] hover:text-[#1B1530]'
             }`}
           >
             <Compass size={19} />
-            <span className="text-[10px]">Search</span>
+            <span className="text-[10px] uppercase tracking-[0.06em]">Search</span>
           </Link>
 
           <Link
@@ -377,7 +376,7 @@ export function Navbar() {
             className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl relative transition ${
               pathname === '/saved' 
                 ? 'text-rose-500 font-bold' 
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                : 'text-[#6B6580] dark:text-[#A89EC0] hover:text-[#1B1530]'
             }`}
           >
             <div className="relative">
@@ -388,7 +387,7 @@ export function Navbar() {
                 </span>
               )}
             </div>
-            <span className="text-[10px]">Saved</span>
+            <span className="text-[10px] uppercase tracking-[0.06em]">Saved</span>
           </Link>
 
           {currentUser ? (
@@ -396,12 +395,12 @@ export function Navbar() {
               href="/profile"
               className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition ${
                 pathname === '/profile' 
-                  ? 'text-emerald-600 dark:text-emerald-400 font-bold' 
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'text-[#7B5EA7] dark:text-[#D9C8F0] font-bold' 
+                  : 'text-[#6B6580] dark:text-[#A89EC0] hover:text-[#1B1530]'
               }`}
             >
               <User size={19} />
-              <span className="text-[10px]">{firstName}</span>
+              <span className="text-[10px] uppercase tracking-[0.06em]">{firstName}</span>
             </Link>
           ) : (
             <button
@@ -409,12 +408,12 @@ export function Navbar() {
               onClick={() => setIsAuthModalOpen(true)}
               className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition cursor-pointer ${
                 pathname === '/profile' 
-                  ? 'text-emerald-600 dark:text-emerald-400 font-bold' 
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'text-[#7B5EA7] dark:text-[#D9C8F0] font-bold' 
+                  : 'text-[#6B6580] dark:text-[#A89EC0] hover:text-[#1B1530]'
               }`}
             >
               <User size={19} />
-              <span className="text-[10px]">Sign In</span>
+              <span className="text-[10px] uppercase tracking-[0.06em]">Sign In</span>
             </button>
           )}
 

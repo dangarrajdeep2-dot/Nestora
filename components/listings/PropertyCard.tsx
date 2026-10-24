@@ -65,7 +65,7 @@ export function PropertyCard({ property, viewMode = 'grid', referenceLocation }:
     <div 
       onClick={handleCardClick}
       onAuxClick={handleAuxClick}
-      className={`group glass-card hover:border-emerald-500/50 dark:hover:border-emerald-500/60 rounded-3xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-emerald-500/10 flex flex-col overflow-hidden relative md:preserve-3d h-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50 ${
+      className={`group glass-card rounded-[24px] transition-all duration-300 hover:-translate-y-1.5 flex flex-col overflow-hidden relative md:preserve-3d h-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#7B5EA7]/50 ${
         viewMode === 'list' ? 'sm:flex-row' : ''
       }`}
     >
@@ -73,13 +73,13 @@ export function PropertyCard({ property, viewMode = 'grid', referenceLocation }:
       <Link
         href={`/property/${property.id}`}
         aria-label={`View details for ${property.title}`}
-        className="absolute inset-0 z-10 rounded-3xl cursor-pointer"
+        className="absolute inset-0 z-10 rounded-[24px] cursor-pointer"
         tabIndex={-1}
       />
 
       {/* Property Image & Overlays */}
       <div 
-        className={`relative overflow-hidden bg-slate-100 dark:bg-slate-800 ${
+        className={`relative overflow-hidden bg-slate-100 dark:bg-[#1E1535] ${
           viewMode === 'list' ? 'sm:w-72 h-56 sm:h-auto shrink-0' : 'h-52 w-full'
         }`}
       >
@@ -99,19 +99,19 @@ export function PropertyCard({ property, viewMode = 'grid', referenceLocation }:
           <div className="flex items-center gap-1.5 flex-wrap pointer-events-none">
             {/* Gender Badge */}
             <span 
-              className={`text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm capitalize backdrop-blur-md pointer-events-none ${
+              className={`text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm uppercase tracking-[0.06em] backdrop-blur-md pointer-events-none ${
                 property.gender === 'girls'
-                  ? 'bg-rose-500/95 text-white'
+                  ? 'bg-[#9D7FD3]/95 text-white'
                   : property.gender === 'boys'
-                  ? 'bg-emerald-600/95 text-white'
-                  : 'bg-purple-600/95 text-white'
+                  ? 'bg-[#7B5EA7]/95 text-white'
+                  : 'bg-[#4B2E83]/95 text-white'
               }`}
             >
-              {property.gender === 'girls' ? 'Girls Only' : property.gender === 'boys' ? 'Boys Only' : 'Boys & Girls'}
+              {property.gender === 'girls' ? 'Girls Only' : property.gender === 'boys' ? 'Boys Only' : 'Co-Ed'}
             </span>
 
             {/* Property Type Badge */}
-            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-slate-200 backdrop-blur-md shadow-sm pointer-events-none">
+            <span className="text-[10px] font-bold uppercase tracking-[0.06em] px-2.5 py-0.5 rounded-full bg-white/90 dark:bg-[#1E1535]/90 text-[#1B1530] dark:text-[#F3EDFB] backdrop-blur-md shadow-sm pointer-events-none">
               {property.type}
             </span>
           </div>
@@ -126,10 +126,10 @@ export function PropertyCard({ property, viewMode = 'grid', referenceLocation }:
               toggle(property.id);
             }}
             aria-label={saved ? 'Remove from saved' : 'Save property'}
-            className="w-8 h-8 rounded-full bg-white/90 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-rose-500 dark:hover:text-rose-400 flex items-center justify-center transition-all shadow-md pointer-events-auto relative z-30 active:scale-90"
+            className="w-8 h-8 rounded-full bg-white/90 dark:bg-[#1E1535]/90 hover:bg-white dark:hover:bg-[#2C1D4A] text-[#1B1530] dark:text-[#F3EDFB] hover:text-rose-500 dark:hover:text-rose-400 flex items-center justify-center transition-all shadow-md pointer-events-auto relative z-30 active:scale-90"
           >
             <Heart
-              size={17}
+              size={16}
               className={saved ? 'fill-rose-500 text-rose-500 stroke-rose-500' : ''}
             />
           </button>
@@ -138,37 +138,37 @@ export function PropertyCard({ property, viewMode = 'grid', referenceLocation }:
         {/* Verified Badge Overlay at bottom of image */}
         <div className="absolute bottom-3 left-3 flex items-center gap-2 z-20 pointer-events-none">
           {property.verified && (
-            <span className="inline-flex items-center gap-1 bg-emerald-600/95 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md shadow-sm backdrop-blur-sm pointer-events-none">
-              <ShieldCheck size={13} className="shrink-0" />
+            <span className="inline-flex items-center gap-1 bg-[#4B2E83]/95 text-white text-[10px] font-bold uppercase tracking-[0.06em] px-2.5 py-0.5 rounded-full shadow-sm backdrop-blur-sm pointer-events-none">
+              <ShieldCheck size={12} className="shrink-0" />
               Verified
             </span>
           )}
 
           {property.isAvailableNow && (
-            <span className="inline-flex items-center gap-1 bg-teal-500/95 text-white text-[10px] font-medium px-1.5 py-0.5 rounded-md shadow-sm backdrop-blur-sm pointer-events-none">
+            <span className="inline-flex items-center gap-1 bg-[#7B5EA7]/95 text-white text-[10px] font-bold uppercase tracking-[0.06em] px-2.5 py-0.5 rounded-full shadow-sm backdrop-blur-sm pointer-events-none">
               <Sparkles size={11} />
-              Available Now
+              Available
             </span>
           )}
         </div>
       </div>
 
       {/* Card Details Body */}
-      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
           {/* Rating & Distance Line */}
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+          <div className="flex items-center justify-between text-xs text-[#6B6580] dark:text-[#A89EC0] mb-2">
             <div className="flex items-center gap-1">
-              <div className="flex items-center gap-1 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold px-1.5 py-0.5 rounded text-xs border border-amber-500/20">
+              <div className="flex items-center gap-1 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold px-2 py-0.5 rounded-full text-xs border border-amber-500/20">
                 <Star size={12} className="fill-amber-400 text-amber-400" />
                 <span>{property.rating.toFixed(1)}</span>
               </div>
-              <span className="text-slate-400 dark:text-slate-500">({property.reviewCount})</span>
+              <span className="text-[#6B6580] dark:text-[#A89EC0]">({property.reviewCount})</span>
             </div>
 
             {property.distanceKm !== undefined && property.distanceKm <= 20 && (
-              <span className="flex items-center font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full text-[11px] border border-emerald-500/20">
-                <Navigation size={11} className="mr-1 text-emerald-600 dark:text-emerald-400" />
+              <span className="flex items-center font-bold text-[#4B2E83] dark:text-[#D9C8F0] bg-[#D9C8F0]/40 dark:bg-[#7B5EA7]/25 px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-[0.06em] border border-[#7B5EA7]/20">
+                <Navigation size={10} className="mr-1 text-[#7B5EA7] dark:text-[#D9C8F0]" />
                 {property.distanceKm.toFixed(1)} km away
               </span>
             )}
@@ -176,59 +176,62 @@ export function PropertyCard({ property, viewMode = 'grid', referenceLocation }:
 
           {/* Prominent distance from searched college/location (hidden if > 20km) */}
           {referenceLocation && property.distanceKm !== undefined && property.distanceKm <= 20 && (
-            <div className="mb-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/25 text-[11px] font-bold text-emerald-800 dark:text-emerald-300 w-fit">
-              <GraduationCap size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span>{referenceLocation} se <strong className="text-emerald-700 dark:text-emerald-300">{property.distanceKm.toFixed(1)} km door</strong></span>
+            <div className="mb-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D9C8F0]/40 dark:bg-[#7B5EA7]/20 border border-[#7B5EA7]/25 text-[11px] font-bold text-[#4B2E83] dark:text-[#D9C8F0] w-fit">
+              <GraduationCap size={13} className="text-[#7B5EA7] dark:text-[#D9C8F0] shrink-0" />
+              <span>{referenceLocation} se <strong className="text-[#7B5EA7] dark:text-white">{property.distanceKm.toFixed(1)} km door</strong></span>
             </div>
           )}
 
           {/* Property Name */}
-          <div className="group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors block">
-            <h3 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg line-clamp-1 mb-1">
+          <div className="group-hover:text-[#7B5EA7] dark:group-hover:text-[#D9C8F0] transition-colors block">
+            <h3 className="font-bold text-[#1B1530] dark:text-white text-base sm:text-lg line-clamp-1 mb-1">
               {property.title}
             </h3>
           </div>
 
           {/* Area / Locality */}
-          <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm flex items-center mb-3 line-clamp-1">
-            <MapPin size={13} className="mr-1 text-emerald-500 shrink-0" />
-            <span className="font-medium text-slate-700 dark:text-slate-300">{property.area}</span>
-            <span className="mx-1 text-slate-300 dark:text-slate-600">•</span>
+          <p className="text-[#6B6580] dark:text-[#A89EC0] text-xs sm:text-sm flex items-center mb-3 line-clamp-1">
+            <MapPin size={13} className="mr-1 text-[#7B5EA7] shrink-0" />
+            <span className="font-semibold text-[#1B1530] dark:text-[#F3EDFB]">{property.area}</span>
+            <span className="mx-1 text-[#6B6580] dark:text-[#A89EC0]">•</span>
             <span>{property.city}</span>
           </p>
 
           {/* Amenities & Sharing Pills */}
           <div className="space-y-1.5 mb-4">
-            <div className="text-xs text-slate-600 dark:text-slate-300 font-medium line-clamp-1">
+            <div className="text-xs text-[#6B6580] dark:text-[#A89EC0] font-medium line-clamp-1">
               {keyAmenities}
             </div>
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">
-              Sharing: <span className="text-slate-700 dark:text-slate-200 font-semibold capitalize">{availableSharing}</span>
+            <div className="text-[11px] text-[#6B6580] dark:text-[#A89EC0]">
+              Sharing: <span className="text-[#1B1530] dark:text-[#F3EDFB] font-bold capitalize">{availableSharing}</span>
             </div>
           </div>
         </div>
 
-        {/* Price & Action CTA */}
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-3">
+        {/* Price & Small Circular White Arrow Button (Turns Dark Purple on Hover) */}
+        <div className="pt-3 border-t border-slate-200/50 dark:border-white/10 flex items-center justify-between gap-3">
           <div>
             <div className="flex items-baseline gap-1">
-              <span className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400">
+              <span className="text-lg sm:text-xl font-black text-[#7B5EA7] dark:text-[#9D7FD3]">
                 {formatCurrency(property.startingRent)}
               </span>
-              <span className="text-slate-500 dark:text-slate-400 text-xs font-normal">/month</span>
+              <span className="text-[#6B6580] dark:text-[#A89EC0] text-xs font-normal">/mo</span>
             </div>
             {property.deposit > 0 && (
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 block -mt-0.5">
+              <span className="text-[10px] text-[#6B6580] dark:text-[#A89EC0] block -mt-0.5">
                 Dep: {formatCurrency(property.deposit)}
               </span>
             )}
           </div>
 
-          <div
-            className="btn-3d inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 dark:bg-emerald-600 group-hover:bg-emerald-600 dark:group-hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold transition-all duration-200 shadow-sm hover:shadow"
-          >
-            <span>View details</span>
-            <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+          {/* Small circular white arrow button that turns dark purple on hover */}
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#7B5EA7] dark:text-[#D9C8F0] group-hover:text-[#4B2E83] dark:group-hover:text-white transition-colors">
+              Details
+            </span>
+            <div className="btn-arrow-circle">
+              <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+            </div>
           </div>
         </div>
       </div>

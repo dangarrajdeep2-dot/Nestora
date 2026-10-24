@@ -39,33 +39,33 @@ export function ListPropertyModal({ isOpen, onClose }: ListPropertyModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-md animate-in fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1B1530]/60 backdrop-blur-md animate-in fade-in">
       <div 
-        className="glass-card bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto border border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white"
+        className="glass-card bg-white/95 dark:bg-[#161024]/95 backdrop-blur-2xl rounded-[24px] max-w-lg w-full p-6 sm:p-8 shadow-[0_20px_50px_rgba(123,94,167,0.25)] relative max-h-[90vh] overflow-y-auto border border-white/80 dark:border-white/10 text-[#1B1530] dark:text-white"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 dark:hover:text-white bg-slate-100 dark:bg-slate-800 p-2 rounded-full transition cursor-pointer"
+          className="absolute top-5 right-5 text-[#6B6580] hover:text-[#1B1530] dark:text-purple-200/70 dark:hover:text-white bg-white/70 dark:bg-white/10 p-2 rounded-full transition cursor-pointer border border-white/80 dark:border-white/10"
         >
           <X size={18} />
         </button>
 
         {isSuccess ? (
           <div className="py-8 text-center space-y-4">
-            <div className="w-16 h-16 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
+            <div className="w-16 h-16 bg-[#D9C8F0]/60 text-[#7B5EA7] dark:bg-[#7B5EA7]/20 dark:text-purple-300 rounded-full flex items-center justify-center mx-auto border border-[#7B5EA7]/20 shadow-sm">
               <CheckCircle2 size={36} />
             </div>
-            <h3 className="text-2xl font-bold">Listing Request Received!</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-300 max-w-sm mx-auto leading-relaxed">
-              Thank you, <span className="font-semibold text-slate-900 dark:text-white">{ownerName}</span>. Our student accommodation onboarding team will contact you at <span className="font-semibold text-slate-900 dark:text-white">{phone}</span> to verify details and activate your property on Nestora.
+            <h3 className="font-heading text-2xl sm:text-3xl uppercase tracking-tight">Listing Request Received!</h3>
+            <p className="text-sm text-[#6B6580] dark:text-purple-200/70 max-w-sm mx-auto leading-relaxed">
+              Thank you, <span className="font-semibold text-[#1B1530] dark:text-white">{ownerName}</span>. Our student accommodation onboarding team will contact you at <span className="font-semibold text-[#1B1530] dark:text-white">{phone}</span> to verify details and activate your property on Nestora.
             </p>
             <button
               onClick={() => {
                 setIsSuccess(false);
                 onClose();
               }}
-              className="mt-4 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition"
+              className="mt-4 px-6 py-2.5 bg-[#7B5EA7] hover:bg-[#4B2E83] text-white rounded-full font-bold text-xs uppercase tracking-[0.08em] shadow-md transition cursor-pointer"
             >
               Done
             </button>
@@ -73,19 +73,19 @@ export function ListPropertyModal({ isOpen, onClose }: ListPropertyModalProps) {
         ) : (
           <div>
             <div className="mb-6">
-              <div className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-2.5 py-1 rounded-md mb-2 border border-emerald-500/20">
-                <Building2 size={14} />
+              <div className="inline-flex items-center gap-1.5 bg-[#D9C8F0]/50 text-[#4B2E83] dark:bg-[#7B5EA7]/20 dark:text-purple-200 text-xs font-bold uppercase tracking-[0.08em] px-3 py-1 rounded-full mb-2 border border-[#7B5EA7]/20">
+                <Building2 size={14} className="text-[#7B5EA7]" />
                 <span>Zero Listing Charges For Owners</span>
               </div>
-              <h3 className="text-2xl font-black">List Your PG / Hostel</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <h3 className="font-heading text-2xl sm:text-3xl uppercase tracking-tight">List Your PG / Hostel</h3>
+              <p className="text-xs text-[#6B6580] dark:text-purple-200/70 mt-1">
                 Reach thousands of verified college students searching stays near their campus.
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">
+                <label className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5 text-[#6B6580] dark:text-purple-200/80">
                   Property Name *
                 </label>
                 <input
@@ -94,13 +94,13 @@ export function ListPropertyModal({ isOpen, onClose }: ListPropertyModalProps) {
                   value={propertyName}
                   onChange={(e) => setPropertyName(e.target.value)}
                   placeholder="e.g. Sunrise Student PG"
-                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 focus:border-emerald-500 outline-none"
+                  className="w-full px-4 py-2.5 text-sm rounded-2xl border border-white/80 dark:border-white/10 bg-white/70 dark:bg-black/30 text-[#1B1530] dark:text-white focus:border-[#7B5EA7] focus:ring-2 focus:ring-[#7B5EA7]/25 outline-none transition"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5 text-[#6B6580] dark:text-purple-200/80">
                     Your Name *
                   </label>
                   <input
@@ -109,11 +109,11 @@ export function ListPropertyModal({ isOpen, onClose }: ListPropertyModalProps) {
                     value={ownerName}
                     onChange={(e) => setOwnerName(e.target.value)}
                     placeholder="Owner / Warden"
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 focus:border-emerald-500 outline-none"
+                    className="w-full px-4 py-2.5 text-sm rounded-2xl border border-white/80 dark:border-white/10 bg-white/70 dark:bg-black/30 text-[#1B1530] dark:text-white focus:border-[#7B5EA7] focus:ring-2 focus:ring-[#7B5EA7]/25 outline-none transition"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5 text-[#6B6580] dark:text-purple-200/80">
                     Phone / WhatsApp *
                   </label>
                   <input
@@ -122,14 +122,14 @@ export function ListPropertyModal({ isOpen, onClose }: ListPropertyModalProps) {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="10-digit number"
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 focus:border-emerald-500 outline-none"
+                    className="w-full px-4 py-2.5 text-sm rounded-2xl border border-white/80 dark:border-white/10 bg-white/70 dark:bg-black/30 text-[#1B1530] dark:text-white focus:border-[#7B5EA7] focus:ring-2 focus:ring-[#7B5EA7]/25 outline-none transition"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5 text-[#6B6580] dark:text-purple-200/80">
                     City *
                   </label>
                   <input
@@ -138,11 +138,11 @@ export function ListPropertyModal({ isOpen, onClose }: ListPropertyModalProps) {
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="e.g. Rajkot"
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 focus:border-emerald-500 outline-none"
+                    className="w-full px-4 py-2.5 text-sm rounded-2xl border border-white/80 dark:border-white/10 bg-white/70 dark:bg-black/30 text-[#1B1530] dark:text-white focus:border-[#7B5EA7] outline-none transition"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5 text-[#6B6580] dark:text-purple-200/80">
                     Area / Locality *
                   </label>
                   <input
@@ -151,18 +151,18 @@ export function ListPropertyModal({ isOpen, onClose }: ListPropertyModalProps) {
                     value={area}
                     onChange={(e) => setArea(e.target.value)}
                     placeholder="e.g. Kotecha Chowk"
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 focus:border-emerald-500 outline-none"
+                    className="w-full px-4 py-2.5 text-sm rounded-2xl border border-white/80 dark:border-white/10 bg-white/70 dark:bg-black/30 text-[#1B1530] dark:text-white focus:border-[#7B5EA7] outline-none transition"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">Type</label>
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5 text-[#6B6580] dark:text-purple-200/80">Type</label>
                   <select
                     value={propertyType}
                     onChange={(e) => setPropertyType(e.target.value as PropertyType)}
-                    className="w-full px-2 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+                    className="w-full px-2 py-2 text-xs rounded-xl border border-white/80 dark:border-white/10 bg-white dark:bg-[#161024] text-[#1B1530] dark:text-white focus:border-[#7B5EA7] outline-none"
                   >
                     <option value="PG">PG</option>
                     <option value="Hostel">Hostel</option>
@@ -171,11 +171,11 @@ export function ListPropertyModal({ isOpen, onClose }: ListPropertyModalProps) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">For</label>
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5 text-[#6B6580] dark:text-purple-200/80">For</label>
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value as "boys" | "girls" | "co-ed")}
-                    className="w-full px-2 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+                    className="w-full px-2 py-2 text-xs rounded-xl border border-white/80 dark:border-white/10 bg-white dark:bg-[#161024] text-[#1B1530] dark:text-white focus:border-[#7B5EA7] outline-none"
                   >
                     <option value="boys">Boys</option>
                     <option value="girls">Girls</option>
@@ -183,14 +183,14 @@ export function ListPropertyModal({ isOpen, onClose }: ListPropertyModalProps) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">Rent/mo</label>
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5 text-[#6B6580] dark:text-purple-200/80">Rent/mo</label>
                   <input
                     type="number"
                     required
                     value={startingRent}
                     onChange={(e) => setStartingRent(e.target.value)}
                     placeholder="₹6000"
-                    className="w-full px-2 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70"
+                    className="w-full px-2 py-2 text-xs rounded-xl border border-white/80 dark:border-white/10 bg-white/70 dark:bg-black/30 text-[#1B1530] dark:text-white focus:border-[#7B5EA7] outline-none"
                   />
                 </div>
               </div>
@@ -199,7 +199,7 @@ export function ListPropertyModal({ isOpen, onClose }: ListPropertyModalProps) {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-sm rounded-2xl flex items-center justify-center gap-2 transition cursor-pointer shadow-lg shadow-emerald-500/25"
+                  className="w-full py-3.5 bg-[#7B5EA7] hover:bg-[#4B2E83] text-white font-bold text-xs uppercase tracking-[0.08em] rounded-full flex items-center justify-center gap-2 transition duration-300 hover:-translate-y-0.5 cursor-pointer shadow-[0_10px_25px_rgba(123,94,167,0.3)] disabled:opacity-60"
                 >
                   {isSubmitting ? (
                     <>
@@ -207,7 +207,10 @@ export function ListPropertyModal({ isOpen, onClose }: ListPropertyModalProps) {
                       <span>Submitting...</span>
                     </>
                   ) : (
-                    <span>Submit Property for Verification</span>
+                    <>
+                      <span>Submit Property for Verification</span>
+                      <span>→</span>
+                    </>
                   )}
                 </button>
               </div>

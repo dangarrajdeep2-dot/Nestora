@@ -160,9 +160,9 @@ export function ResetPasswordForm() {
   // State 1: Verifying session
   if (verifying) {
     return (
-      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/80 rounded-3xl p-8 sm:p-12 shadow-2xl text-center space-y-4">
-        <Loader2 size={36} className="animate-spin text-emerald-500 mx-auto" />
-        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+      <div className="glass-card bg-white/80 dark:bg-[#161024]/80 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-[24px] p-8 sm:p-12 shadow-[0_15px_35px_rgba(123,94,167,0.18)] text-center space-y-4">
+        <Loader2 size={36} className="animate-spin text-[#7B5EA7] mx-auto" />
+        <p className="text-xs font-bold uppercase tracking-[0.08em] text-[#6B6580] dark:text-purple-200/70">
           Verifying password reset link...
         </p>
       </div>
@@ -172,14 +172,14 @@ export function ResetPasswordForm() {
   // State 2: Success state
   if (isSuccess) {
     return (
-      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/80 rounded-3xl p-8 sm:p-10 shadow-2xl text-center space-y-6">
-        <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20">
+      <div className="glass-card bg-white/80 dark:bg-[#161024]/80 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-[24px] p-8 sm:p-10 shadow-[0_15px_35px_rgba(123,94,167,0.18)] text-center space-y-6">
+        <div className="w-16 h-16 rounded-full bg-[#D9C8F0]/60 dark:bg-[#7B5EA7]/30 text-[#7B5EA7] dark:text-purple-200 flex items-center justify-center mx-auto border border-[#7B5EA7]/20 shadow-sm">
           <CheckCircle2 size={36} />
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white">Password Updated!</h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
+          <h2 className="font-heading text-2xl sm:text-3xl uppercase tracking-tight text-[#1B1530] dark:text-white">Password Updated!</h2>
+          <p className="text-xs sm:text-sm text-[#6B6580] dark:text-purple-200/70 max-w-sm mx-auto leading-relaxed">
             Your password has been reset successfully. You can now sign in to your student account using your new password.
           </p>
         </div>
@@ -187,7 +187,7 @@ export function ResetPasswordForm() {
         <div className="pt-2">
           <Link
             href="/login"
-            className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-6 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition shadow-lg shadow-emerald-500/25"
+            className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-6 rounded-full text-xs font-bold uppercase tracking-[0.08em] text-white bg-[#7B5EA7] hover:bg-[#4B2E83] transition duration-300 hover:-translate-y-0.5 shadow-[0_10px_25px_rgba(123,94,167,0.3)]"
           >
             <span>Sign In to Student Account</span>
             <ArrowRight size={16} />
@@ -200,14 +200,14 @@ export function ResetPasswordForm() {
   // State 3: Invalid or expired link
   if (isInvalidLink || !hasRecoverySession) {
     return (
-      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/80 rounded-3xl p-8 sm:p-10 shadow-2xl text-center space-y-6">
-        <div className="w-16 h-16 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto border border-amber-500/20">
+      <div className="glass-card bg-white/80 dark:bg-[#161024]/80 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-[24px] p-8 sm:p-10 shadow-[0_15px_35px_rgba(123,94,167,0.18)] text-center space-y-6">
+        <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto border border-amber-500/20">
           <AlertTriangle size={36} />
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white">Reset Link Expired</h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
+          <h2 className="font-heading text-2xl sm:text-3xl uppercase tracking-tight text-[#1B1530] dark:text-white">Reset Link Expired</h2>
+          <p className="text-xs sm:text-sm text-[#6B6580] dark:text-purple-200/70 max-w-sm mx-auto leading-relaxed">
             This password reset link is invalid, has expired, or has already been used. For your security, reset links are single-use only.
           </p>
         </div>
@@ -215,7 +215,7 @@ export function ResetPasswordForm() {
         <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center items-center">
           <Link
             href="/forgot-password"
-            className="inline-flex items-center gap-1.5 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition shadow-lg shadow-emerald-500/20"
+            className="inline-flex items-center gap-1.5 px-5 py-3 rounded-full text-xs font-bold uppercase tracking-[0.08em] text-white bg-[#7B5EA7] hover:bg-[#4B2E83] transition shadow-[0_8px_20px_rgba(123,94,167,0.25)]"
           >
             <KeyRound size={16} />
             <span>Request New Reset Link</span>
@@ -223,7 +223,7 @@ export function ResetPasswordForm() {
 
           <Link
             href="/login"
-            className="inline-flex items-center gap-1.5 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+            className="inline-flex items-center gap-1.5 px-5 py-3 rounded-full text-xs font-bold uppercase tracking-[0.08em] text-[#1B1530] dark:text-white bg-white/70 dark:bg-white/10 hover:bg-[#D9C8F0]/40 transition border border-white/80 dark:border-white/10"
           >
             <ArrowLeft size={16} />
             <span>Back to Sign In</span>
@@ -235,7 +235,7 @@ export function ResetPasswordForm() {
 
   // State 4: Valid recovery session - Show reset password form
   return (
-    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/80 rounded-3xl p-8 sm:p-10 shadow-2xl space-y-6">
+    <div className="glass-card bg-white/80 dark:bg-[#161024]/80 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-[24px] p-8 sm:p-10 shadow-[0_15px_35px_rgba(123,94,167,0.18)] space-y-6">
       
       {error && (
         <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs sm:text-sm font-semibold">
@@ -247,8 +247,8 @@ export function ResetPasswordForm() {
         
         {/* New Password */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-            <Lock size={14} className="text-emerald-500" />
+          <label className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#6B6580] dark:text-purple-200/80 flex items-center gap-1.5">
+            <Lock size={14} className="text-[#7B5EA7]" />
             <span>New Password (min 8 characters)</span>
           </label>
           <div className="relative">
@@ -259,13 +259,13 @@ export function ResetPasswordForm() {
               minLength={8}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-4 py-3 pr-12 rounded-2xl text-sm bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
+              className="w-full px-4 py-3 pr-12 rounded-2xl text-sm bg-white/70 dark:bg-black/30 border border-white/80 dark:border-white/10 text-[#1B1530] dark:text-white placeholder-[#6B6580]/50 focus:outline-none focus:ring-2 focus:ring-[#7B5EA7]/25 focus:border-[#7B5EA7] transition"
             />
             <button
               type="button"
               onClick={() => setShowNewPassword(!showNewPassword)}
               aria-label={showNewPassword ? 'Hide password' : 'Show password'}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-[#6B6580] hover:text-[#1B1530] dark:hover:text-white transition cursor-pointer"
             >
               {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -274,8 +274,8 @@ export function ResetPasswordForm() {
 
         {/* Confirm Password */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-            <Lock size={14} className="text-emerald-500" />
+          <label className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#6B6580] dark:text-purple-200/80 flex items-center gap-1.5">
+            <Lock size={14} className="text-[#7B5EA7]" />
             <span>Confirm New Password</span>
           </label>
           <div className="relative">
@@ -286,13 +286,13 @@ export function ResetPasswordForm() {
               minLength={8}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-4 py-3 pr-12 rounded-2xl text-sm bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
+              className="w-full px-4 py-3 pr-12 rounded-2xl text-sm bg-white/70 dark:bg-black/30 border border-white/80 dark:border-white/10 text-[#1B1530] dark:text-white placeholder-[#6B6580]/50 focus:outline-none focus:ring-2 focus:ring-[#7B5EA7]/25 focus:border-[#7B5EA7] transition"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-[#6B6580] hover:text-[#1B1530] dark:hover:text-white transition cursor-pointer"
             >
               {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -303,7 +303,7 @@ export function ResetPasswordForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full mt-2 py-3.5 px-6 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+          className="w-full mt-2 py-3.5 px-6 rounded-full text-xs sm:text-sm font-bold uppercase tracking-[0.08em] text-white bg-[#7B5EA7] hover:bg-[#4B2E83] transition duration-300 hover:-translate-y-0.5 shadow-[0_10px_25px_rgba(123,94,167,0.3)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
         >
           {isSubmitting ? (
             <>
@@ -320,9 +320,9 @@ export function ResetPasswordForm() {
       </form>
 
       {/* Footer link back to Sign In */}
-      <div className="pt-4 border-t border-slate-200/60 dark:border-slate-800/60 text-center text-xs text-slate-500 dark:text-slate-400">
+      <div className="pt-4 border-t border-[#D9C8F0]/50 dark:border-white/10 text-center text-xs text-[#6B6580] dark:text-purple-200/70">
         Remembered your existing password?{' '}
-        <Link href="/login" className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
+        <Link href="/login" className="font-bold text-[#7B5EA7] dark:text-purple-300 hover:underline">
           Back to Sign In
         </Link>
       </div>

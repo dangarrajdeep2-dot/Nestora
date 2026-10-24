@@ -276,35 +276,35 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType, onRe
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1B1530]/60 backdrop-blur-md animate-in fade-in duration-200">
       <div 
-        className="glass-card bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto border border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white"
+        className="glass-card bg-white/95 dark:bg-[#161024]/95 backdrop-blur-2xl rounded-[24px] max-w-lg w-full p-6 sm:p-8 shadow-[0_20px_50px_rgba(123,94,167,0.25)] relative max-h-[90vh] overflow-y-auto border border-white/80 dark:border-white/10 text-[#1B1530] dark:text-white"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 dark:hover:text-white bg-slate-100 dark:bg-slate-800 p-2 rounded-full transition cursor-pointer"
+          className="absolute top-5 right-5 text-[#6B6580] hover:text-[#1B1530] dark:text-purple-200/70 dark:hover:text-white bg-white/70 dark:bg-white/10 p-2 rounded-full transition cursor-pointer border border-white/80 dark:border-white/10"
         >
           <X size={18} />
         </button>
 
         {isSubmitted ? (
           <div className="py-6 text-center space-y-4">
-            <div className="w-16 h-16 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
+            <div className="w-16 h-16 bg-[#D9C8F0]/60 text-[#7B5EA7] dark:bg-[#7B5EA7]/20 dark:text-purple-300 rounded-full flex items-center justify-center mx-auto border border-[#7B5EA7]/20 shadow-sm">
               <CheckCircle2 size={36} />
             </div>
-            <h3 className="text-2xl font-bold">Enquiry Registered!</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-300 max-w-sm mx-auto leading-relaxed">
-              Your inquiry has been logged in Nestora. A pre-filled WhatsApp message with your details has been prepared for <span className="font-semibold text-slate-900 dark:text-white">{property.owner.name}</span>.
+            <h3 className="font-heading text-2xl sm:text-3xl uppercase tracking-tight">Enquiry Registered!</h3>
+            <p className="text-sm text-[#6B6580] dark:text-purple-200/70 max-w-sm mx-auto leading-relaxed">
+              Your inquiry has been logged in Nestora. A pre-filled WhatsApp message with your details has been prepared for <span className="font-semibold text-[#1B1530] dark:text-white">{property.owner.name}</span>.
             </p>
 
             {/* Inquiry Details Summary */}
-            <div className="text-left bg-slate-50 dark:bg-slate-950/60 p-4 rounded-2xl border border-slate-200/70 dark:border-slate-800 text-xs space-y-1.5 text-slate-600 dark:text-slate-300">
-              <div><span className="font-bold text-slate-900 dark:text-white">Student:</span> {studentName} (+91 {studentPhone})</div>
-              <div><span className="font-bold text-slate-900 dark:text-white">College:</span> {studentCollege}</div>
-              <div><span className="font-bold text-slate-900 dark:text-white">Stay:</span> {property.title} ({sharingPreference})</div>
-              <div><span className="font-bold text-slate-900 dark:text-white">Move-in Date:</span> {moveInDate}</div>
+            <div className="text-left bg-white/60 dark:bg-[#1B1530]/40 p-4 rounded-2xl border border-white/80 dark:border-white/10 text-xs space-y-1.5 text-[#1B1530] dark:text-purple-100">
+              <div><span className="font-bold text-[#4B2E83] dark:text-purple-300">Student:</span> {studentName} (+91 {studentPhone})</div>
+              <div><span className="font-bold text-[#4B2E83] dark:text-purple-300">College:</span> {studentCollege}</div>
+              <div><span className="font-bold text-[#4B2E83] dark:text-purple-300">Stay:</span> {property.title} ({sharingPreference})</div>
+              <div><span className="font-bold text-[#4B2E83] dark:text-purple-300">Move-in Date:</span> {moveInDate}</div>
             </div>
 
             {generatedWhatsAppUrl ? (
@@ -313,18 +313,18 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType, onRe
                   href={generatedWhatsAppUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition cursor-pointer"
+                  className="w-full py-3.5 px-4 bg-[#4B2E83] hover:bg-[#7B5EA7] text-white font-bold text-xs uppercase tracking-[0.08em] rounded-full flex items-center justify-center gap-2 shadow-[0_10px_25px_rgba(75,46,131,0.25)] transition duration-300 hover:-translate-y-0.5 cursor-pointer"
                 >
-                  <MessageCircle size={18} />
+                  <MessageCircle size={17} />
                   <span>Open WhatsApp & Message {property.owner.name}</span>
                 </a>
-                <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                <p className="text-[11px] text-[#6B6580] dark:text-purple-300/60">
                   Click above if WhatsApp didn't open automatically
                 </p>
               </div>
             ) : null}
 
-            <div className="bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 p-3 rounded-2xl text-xs font-semibold border border-emerald-500/20">
+            <div className="bg-[#D9C8F0]/40 text-[#4B2E83] dark:bg-[#7B5EA7]/20 dark:text-purple-200 p-3 rounded-full text-xs font-bold uppercase tracking-[0.06em] border border-[#7B5EA7]/20">
               ✓ Direct owner connection with zero brokerage fees
             </div>
             <button
@@ -332,7 +332,7 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType, onRe
                 setIsSubmitted(false);
                 onClose();
               }}
-              className="mt-2 px-6 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl font-bold text-sm transition cursor-pointer"
+              className="mt-2 px-6 py-2.5 bg-white/70 dark:bg-white/10 hover:bg-[#D9C8F0]/40 text-[#1B1530] dark:text-white rounded-full font-bold text-xs uppercase tracking-[0.08em] border border-white/80 dark:border-white/10 transition cursor-pointer"
             >
               Done
             </button>
@@ -340,14 +340,14 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType, onRe
         ) : (
           <div>
             <div className="mb-6">
-              <div className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-2.5 py-1 rounded-md mb-2 border border-emerald-500/20">
-                <ShieldCheck size={14} />
+              <div className="inline-flex items-center gap-1.5 bg-[#D9C8F0]/50 text-[#4B2E83] dark:bg-[#7B5EA7]/20 dark:text-purple-200 text-xs font-bold uppercase tracking-[0.08em] px-3 py-1 rounded-full mb-2 border border-[#7B5EA7]/20">
+                <ShieldCheck size={14} className="text-[#7B5EA7]" />
                 <span>Verified Direct Connect</span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-black">
+              <h3 className="font-heading text-2xl sm:text-3xl uppercase tracking-tight">
                 Enquire for {property.title}
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-[#6B6580] dark:text-purple-200/70 mt-1">
                 {property.area}, {property.city} • Starts at ₹{property.startingRent.toLocaleString()}/mo
               </p>
             </div>
@@ -361,18 +361,18 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType, onRe
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Student Name */}
               <div>
-                <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">
+                <label className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5 text-[#6B6580] dark:text-purple-200/80">
                   Your Full Name *
                 </label>
                 <div className="relative">
-                  <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7B5EA7]" />
                   <input
                     type="text"
                     required
                     value={studentName}
                     onChange={(e) => setStudentName(e.target.value)}
                     placeholder="e.g. Parth Patel"
-                    className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                    className="w-full pl-10 pr-3 py-2.5 text-sm rounded-2xl border border-white/80 dark:border-white/10 bg-white/70 dark:bg-black/30 text-[#1B1530] dark:text-white focus:border-[#7B5EA7] focus:ring-2 focus:ring-[#7B5EA7]/25 outline-none transition"
                   />
                 </div>
                 {errors.name && <p className="text-rose-500 text-xs mt-1">{errors.name}</p>}
@@ -380,11 +380,11 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType, onRe
 
               {/* Student Phone */}
               <div>
-                <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">
+                <label className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5 text-[#6B6580] dark:text-purple-200/80">
                   Mobile Number (WhatsApp) *
                 </label>
                 <div className="relative">
-                  <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7B5EA7]" />
                   <input
                     type="tel"
                     inputMode="numeric"
@@ -392,7 +392,7 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType, onRe
                     value={studentPhone}
                     onChange={handlePhoneChange}
                     placeholder="10-digit mobile number"
-                    className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                    className="w-full pl-10 pr-3 py-2.5 text-sm rounded-2xl border border-white/80 dark:border-white/10 bg-white/70 dark:bg-black/30 text-[#1B1530] dark:text-white focus:border-[#7B5EA7] focus:ring-2 focus:ring-[#7B5EA7]/25 outline-none transition"
                   />
                 </div>
                 {errors.phone && <p className="text-rose-500 text-xs mt-1">{errors.phone}</p>}
@@ -400,18 +400,18 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType, onRe
 
               {/* College Name */}
               <div>
-                <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">
+                <label className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5 text-[#6B6580] dark:text-purple-200/80">
                   Your College / University *
                 </label>
                 <div className="relative">
-                  <GraduationCap size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <GraduationCap size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7B5EA7]" />
                   <input
                     type="text"
                     required
                     value={studentCollege}
                     onChange={(e) => setStudentCollege(e.target.value)}
                     placeholder="e.g. Saurashtra University, RK Univ, etc."
-                    className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                    className="w-full pl-10 pr-3 py-2.5 text-sm rounded-2xl border border-white/80 dark:border-white/10 bg-white/70 dark:bg-black/30 text-[#1B1530] dark:text-white focus:border-[#7B5EA7] focus:ring-2 focus:ring-[#7B5EA7]/25 outline-none transition"
                   />
                 </div>
                 {errors.college && <p className="text-rose-500 text-xs mt-1">{errors.college}</p>}
@@ -420,30 +420,30 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType, onRe
               {/* Grid: Move-in date and Sharing Preference */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5 text-[#6B6580] dark:text-purple-200/80">
                     Move-in Date *
                   </label>
                   <div className="relative">
-                    <Calendar size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Calendar size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7B5EA7]" />
                     <input
                       type="date"
                       required
                       value={moveInDate}
                       onChange={(e) => setMoveInDate(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 focus:border-emerald-500 outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 text-xs sm:text-sm rounded-2xl border border-white/80 dark:border-white/10 bg-white/70 dark:bg-black/30 text-[#1B1530] dark:text-white focus:border-[#7B5EA7] focus:ring-2 focus:ring-[#7B5EA7]/25 outline-none transition"
                     />
                   </div>
                   {errors.date && <p className="text-rose-500 text-xs mt-1">{errors.date}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5 text-[#6B6580] dark:text-purple-200/80">
                     Room Sharing
                   </label>
                   <select
                     value={sharingPreference}
                     onChange={(e) => setSharingPreference(e.target.value)}
-                    className="w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:border-emerald-500 outline-none"
+                    className="w-full px-3 py-2.5 text-xs sm:text-sm rounded-2xl border border-white/80 dark:border-white/10 bg-white dark:bg-[#161024] text-[#1B1530] dark:text-white focus:border-[#7B5EA7] outline-none"
                   >
                     {property.rooms.map((r) => (
                       <option key={r.id} value={r.roomType}>
@@ -457,17 +457,17 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType, onRe
 
               {/* Optional Message */}
               <div>
-                <label className="block text-xs font-bold uppercase mb-1 text-slate-700 dark:text-slate-300">
+                <label className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5 text-[#6B6580] dark:text-purple-200/80">
                   Questions / Special Request (Optional)
                 </label>
                 <div className="relative">
-                  <MessageSquare size={16} className="absolute left-3.5 top-3 text-slate-400" />
+                  <MessageSquare size={16} className="absolute left-3.5 top-3 text-[#7B5EA7]" />
                   <textarea
                     rows={2}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="e.g. Want to schedule an in-person room visit this Saturday afternoon..."
-                    className="w-full pl-10 pr-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 focus:border-emerald-500 outline-none"
+                    className="w-full pl-10 pr-3 py-2.5 text-xs sm:text-sm rounded-2xl border border-white/80 dark:border-white/10 bg-white/70 dark:bg-black/30 text-[#1B1530] dark:text-white focus:border-[#7B5EA7] focus:ring-2 focus:ring-[#7B5EA7]/25 outline-none transition"
                   />
                 </div>
               </div>
@@ -476,21 +476,22 @@ export function EnquiryModal({ property, isOpen, onClose, selectedRoomType, onRe
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition cursor-pointer"
+                  className="w-full py-3.5 px-4 bg-[#7B5EA7] hover:bg-[#4B2E83] text-white font-bold text-xs uppercase tracking-[0.08em] rounded-full flex items-center justify-center gap-2 shadow-[0_10px_25px_rgba(123,94,167,0.3)] transition duration-300 hover:-translate-y-0.5 cursor-pointer disabled:opacity-60"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 size={18} className="animate-spin" />
+                      <Loader2 size={16} className="animate-spin" />
                       <span>Sending Details to Owner...</span>
                     </>
                   ) : (
                     <>
-                      <MessageCircle size={18} />
+                      <MessageCircle size={16} />
                       <span>Send Enquiry & Chat on WhatsApp</span>
+                      <span>→</span>
                     </>
                   )}
                 </button>
-                <p className="text-[11px] text-center text-slate-400 dark:text-slate-500">
+                <p className="text-[11px] text-center text-[#6B6580] dark:text-purple-300/60">
                   Pre-fills your student details & directly connects you with the owner on WhatsApp
                 </p>
               </div>

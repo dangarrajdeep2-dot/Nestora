@@ -51,13 +51,13 @@ export function Hero3DVisualizer() {
       onMouseLeave={handleMouseLeave}
       className="relative w-full max-w-lg mx-auto py-6 sm:py-10 perspective-1500 select-none cursor-pointer"
     >
-      {/* 3D Ambient Volumetric Glow Behind */}
+      {/* 3D Ambient Volumetric Soft Lilac Glow Behind */}
       <div 
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-tr from-emerald-500/25 via-teal-400/20 to-emerald-300/10 dark:from-emerald-600/30 dark:via-teal-600/20 dark:to-transparent rounded-full blur-3xl -z-10 animate-pulse-ring pointer-events-none" 
+        className="absolute inset-0 bg-gradient-to-tr from-[#D9C8F0]/40 via-[#7B5EA7]/25 to-transparent dark:from-[#7B5EA7]/25 dark:via-[#4B2E83]/15 dark:to-transparent rounded-full blur-3xl -z-10 animate-pulse-ring pointer-events-none" 
       />
 
-      {/* Continuous Gentle Float Wrapper (Never starts/stops abruptly) */}
+      {/* Continuous Gentle Float Wrapper */}
       <div className="animate-float-slow preserve-3d will-change-transform">
         
         {/* Interactive Tilt Container */}
@@ -75,7 +75,7 @@ export function Hero3DVisualizer() {
         >
 
           {/* 1. Main Base 3D Glass Card */}
-          <div className="glass-card rounded-3xl overflow-hidden border border-white/70 dark:border-slate-800 shadow-2xl bg-white/90 dark:bg-slate-900/90 p-3.5 sm:p-4 transform translate-z-10">
+          <div className="glass-card rounded-[24px] overflow-hidden border border-white/80 dark:border-white/15 shadow-2xl bg-white/80 dark:bg-[#1C142E]/80 p-4 transform translate-z-10">
             
             {/* Main Visual Image */}
             <div className="relative h-60 sm:h-72 w-full rounded-2xl overflow-hidden shadow-inner">
@@ -91,8 +91,8 @@ export function Hero3DVisualizer() {
 
               {/* In-Image Tag */}
               <div className="absolute top-3 left-3 flex gap-2">
-                <span className="bg-emerald-600/95 text-white text-[11px] font-black px-2.5 py-1 rounded-full shadow-md backdrop-blur-md flex items-center gap-1">
-                  <Sparkles size={12} />
+                <span className="bg-[#7B5EA7]/95 text-white text-[10px] font-bold uppercase tracking-[0.06em] px-3 py-1 rounded-full shadow-md backdrop-blur-md flex items-center gap-1">
+                  <Sparkles size={11} />
                   Student Stay
                 </span>
               </div>
@@ -101,8 +101,8 @@ export function Hero3DVisualizer() {
                 <h4 className="font-extrabold text-base sm:text-lg drop-shadow-md">
                   Student Home PG
                 </h4>
-                <p className="text-xs text-slate-200 flex items-center drop-shadow">
-                  <MapPin size={12} className="mr-1 text-emerald-400" />
+                <p className="text-xs text-[#D9C8F0] flex items-center drop-shadow font-medium">
+                  <MapPin size={12} className="mr-1 text-[#D9C8F0]" />
                   Near Saurashtra University • Kotecha Chowk
                 </p>
               </div>
@@ -110,25 +110,25 @@ export function Hero3DVisualizer() {
 
             {/* Bottom Card Summary */}
             <div className="pt-3 px-2 flex items-center justify-between">
-              <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-300 font-semibold">
+              <div className="flex items-center gap-3 text-xs text-[#6B6580] dark:text-[#A89EC0] font-semibold">
                 <span className="flex items-center gap-1">
-                  <Utensils size={13} className="text-emerald-500" />
+                  <Utensils size={13} className="text-[#7B5EA7] dark:text-[#D9C8F0]" />
                   3 Meals
                 </span>
                 <span className="flex items-center gap-1">
-                  <Wifi size={13} className="text-emerald-500" />
+                  <Wifi size={13} className="text-[#7B5EA7] dark:text-[#D9C8F0]" />
                   Wi-Fi
                 </span>
                 <span className="flex items-center gap-1">
-                  <Bed size={13} className="text-emerald-500" />
+                  <Bed size={13} className="text-[#7B5EA7] dark:text-[#D9C8F0]" />
                   AC Room
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
+                <span className="text-base font-black text-[#7B5EA7] dark:text-[#9D7FD3]">
                   ₹7,500
                 </span>
-                <span className="text-[10px] text-slate-400 block -mt-1">/month</span>
+                <span className="text-[10px] text-[#6B6580] dark:text-[#A89EC0] block -mt-1">/month</span>
               </div>
             </div>
           </div>
@@ -141,17 +141,17 @@ export function Hero3DVisualizer() {
                 transition: 'transform 0.15s ease-out',
                 transformStyle: 'preserve-3d',
               }}
-              className="glass rounded-2xl p-2.5 sm:p-3 shadow-xl border border-emerald-500/30 flex items-center gap-2.5 bg-white/95 dark:bg-slate-900/95"
+              className="glass rounded-2xl p-2.5 sm:p-3 shadow-xl border border-white/80 dark:border-white/15 flex items-center gap-2.5 bg-white/90 dark:bg-[#1E1535]/90"
             >
-              <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/30">
+              <div className="w-9 h-9 rounded-full bg-[#7B5EA7] text-white flex items-center justify-center shadow-md shadow-[#7B5EA7]/30">
                 <ShieldCheck size={20} />
               </div>
               <div>
-                <div className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1">
+                <div className="text-xs font-bold text-[#1B1530] dark:text-white flex items-center gap-1">
                   <span>Verified Stay</span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                  <span className="w-2 h-2 rounded-full bg-[#7B5EA7] animate-ping" />
                 </div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">100% Student Safe</div>
+                <div className="text-[10px] text-[#6B6580] dark:text-[#A89EC0] font-medium">100% Student Safe</div>
               </div>
             </div>
           </div>
@@ -164,15 +164,15 @@ export function Hero3DVisualizer() {
                 transition: 'transform 0.15s ease-out',
                 transformStyle: 'preserve-3d',
               }}
-              className="glass rounded-2xl p-2.5 sm:p-3 shadow-xl border border-amber-400/30 flex items-center gap-2 bg-white/95 dark:bg-slate-900/95"
+              className="glass rounded-2xl p-2.5 sm:p-3 shadow-xl border border-white/80 dark:border-white/15 flex items-center gap-2 bg-white/90 dark:bg-[#1E1535]/90"
             >
-              <div className="flex items-center gap-1 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-black px-2 py-1 rounded-lg text-xs border border-amber-500/20">
+              <div className="flex items-center gap-1 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold px-2 py-1 rounded-full text-xs border border-amber-500/20">
                 <Star size={13} className="fill-amber-400 text-amber-400" />
                 <span>4.9</span>
               </div>
               <div className="text-left">
-                <div className="text-xs font-bold text-slate-900 dark:text-white">Student Choice</div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400">Zero Brokerage</div>
+                <div className="text-xs font-bold text-[#1B1530] dark:text-white">Student Choice</div>
+                <div className="text-[10px] text-[#6B6580] dark:text-[#A89EC0]">Zero Brokerage</div>
               </div>
             </div>
           </div>
@@ -185,16 +185,16 @@ export function Hero3DVisualizer() {
                 transition: 'transform 0.15s ease-out',
                 transformStyle: 'preserve-3d',
               }}
-              className="glass rounded-2xl px-3 py-2 shadow-xl border border-emerald-500/30 flex items-center gap-2 bg-white/95 dark:bg-slate-900/95"
+              className="glass rounded-2xl px-3.5 py-2 shadow-xl border border-white/80 dark:border-white/15 flex items-center gap-2 bg-white/90 dark:bg-[#1E1535]/90"
             >
-              <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                <Navigation size={14} />
+              <div className="w-7 h-7 rounded-full bg-[#D9C8F0]/60 text-[#4B2E83] dark:text-[#D9C8F0] flex items-center justify-center">
+                <Navigation size={13} />
               </div>
               <div className="text-left">
-                <div className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400">
+                <div className="text-[11px] font-bold text-[#4B2E83] dark:text-[#D9C8F0]">
                   0.8 km from Campus
                 </div>
-                <div className="text-[9px] text-slate-500 dark:text-slate-400">5 mins walking</div>
+                <div className="text-[9px] text-[#6B6580] dark:text-[#A89EC0]">5 mins walking</div>
               </div>
             </div>
           </div>
@@ -207,19 +207,19 @@ export function Hero3DVisualizer() {
                 transition: 'transform 0.15s ease-out',
                 transformStyle: 'preserve-3d',
               }}
-              className="glass rounded-2xl px-3.5 py-2.5 shadow-2xl border border-emerald-500/30 flex items-center gap-2.5 bg-white/95 dark:bg-slate-900/95"
+              className="glass rounded-2xl px-3.5 py-2.5 shadow-2xl border border-white/80 dark:border-white/15 flex items-center gap-2.5 bg-white/90 dark:bg-[#1E1535]/90"
             >
               <div className="relative">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 text-white flex items-center justify-center font-bold text-xs shadow-md">
+                <div className="w-8 h-8 rounded-full bg-[#7B5EA7] text-white flex items-center justify-center font-bold text-xs shadow-md">
                   ✓
                 </div>
-                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900" />
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#9D7FD3] border-2 border-white dark:border-[#1E1535]" />
               </div>
               <div>
-                <div className="text-[11px] font-black text-slate-900 dark:text-white">
+                <div className="text-[11px] font-bold text-[#1B1530] dark:text-white">
                   2 Beds Left Today
                 </div>
-                <div className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">
+                <div className="text-[9px] text-[#7B5EA7] dark:text-[#D9C8F0] font-bold">
                   Instant Owner Connect
                 </div>
               </div>

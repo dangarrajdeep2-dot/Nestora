@@ -103,99 +103,76 @@ export default function ProfilePage() {
 
         setUser(authUser);
 
-        // Fetch student profile row using authenticated user's ID
+        // Fetch student profile record from public.users table
         const profilePromise = supabase
           .from('users')
-          .select('id, name, email, phone, college, avatar_url')
+          .select('id, name, email, phone, college')
           .eq('id', authUser.id)
           .maybeSingle();
-        const profileTimeout = new Promise<{ data: null }>((resolve) =>
-          setTimeout(() => resolve({ data: null }), 4000)
+        const profileTimeout = new Promise<{ data: null; error: Error }>((resolve) =>
+          setTimeout(() => resolve({ data: null, error: new Error('Profile timeout') }), 5000)
         );
-        const { data: initialProfile } = await Promise.race([profilePromise, profileTimeout]);
 
-        const profile = initialProfile;
+        const { data: profile } = await Promise.race([profilePromise, profileTimeout]);
+        if (!isMounted) return;
 
-        if (isMounted) {
-          // If public.users.name is empty, use authenticated user's metadata name as fallback for display
-          const dbName = (profile?.name || '').trim();
-          const metaName = (authUser.user_metadata?.name || authUser.user_metadata?.full_name || '').trim();
-          const displayName = dbName || metaName || 'Student';
-
-          // Fetch saved phone number and college from the existing profile record
-          const savedPhone = (profile?.phone || '').trim();
-          const savedCollege = (profile?.college || '').trim();
-
-          const currentData = {
-            id: profile?.id || authUser.id,
-            name: displayName,
-            email: profile?.email || authUser.email || '',
-            phone: savedPhone,
-            college: savedCollege,
+        if (profile) {
+          const profileData = {
+            id: profile.id,
+            name: profile.name || authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'Student',
+            email: profile.email || authUser.email || '',
+            phone: profile.phone || '',
+            college: profile.college || '',
           };
-
-          setStudent(currentData);
-          // Pre-fill the form fields with the retrieved values
-          setEditName(displayName);
-          setEditPhone(savedPhone);
-          setEditCollege(savedCollege);
-          setPhoneError(null);
-
-          window.dispatchEvent(
-            new CustomEvent('nestora_profile_updated', {
-              detail: { name: displayName },
-            })
-          );
+          setStudent(profileData);
+          setEditName(profileData.name);
+          setEditPhone(profileData.phone);
+          setEditCollege(profileData.college);
+        } else {
+          // If no profile record yet, initialize with auth user metadata
+          const metaName = authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'Student';
+          const defaultData = {
+            id: authUser.id,
+            name: metaName,
+            email: authUser.email || '',
+            phone: '',
+            college: '',
+          };
+          setStudent(defaultData);
+          setEditName(defaultData.name);
+          setEditPhone('');
+          setEditCollege('');
         }
 
-        // Fetch student enquiries from public.enquiries
-        const enqPromise = supabase
-          .from('enquiries')
-          .select('*')
-          .eq('user_id', authUser.id)
-          .order('created_at', { ascending: false });
-        const enqTimeout = new Promise<{ data: null }>((resolve) =>
-          setTimeout(() => resolve({ data: null }), 4000)
-        );
-        const { data: enqData } = await Promise.race([enqPromise, enqTimeout]);
+        // Fetch recent enquiries submitted by this user
+        try {
+          const { data: enqData } = await supabase
+            .from('enquiries')
+            .select('*')
+            .eq('user_id', authUser.id)
+            .order('created_at', { ascending: false })
+            .limit(10);
 
-        if (enqData && isMounted) {
-          const mapped: Enquiry[] = enqData.map((e: {
-            id: string;
-            property_id: string;
-            property_name?: string | null;
-            student_name: string;
-            student_phone: string;
-            student_college?: string | null;
-            gender: 'boys' | 'girls' | 'co-ed';
-            move_in_date?: string | null;
-            sharing_preference?: string | null;
-            message?: string | null;
-            status?: string | null;
-            created_at?: string | null;
-          }) => ({
-            id: e.id,
-            propertyId: e.property_id,
-            propertyName: e.property_name || 'Student Stay',
-            studentName: e.student_name,
-            studentPhone: e.student_phone,
-            studentCollege: e.student_college || '',
-            gender: e.gender === 'girls' ? 'girls' : 'boys',
-            moveInDate: e.move_in_date || '',
-            sharingPreference: e.sharing_preference || '2 Sharing',
-            message: e.message || undefined,
-            status: e.status === 'contacted' ? 'contacted' : 'pending',
-            createdAt: e.created_at || new Date().toISOString(),
-          }));
-          setEnquiries(mapped);
-        } else {
-          // Fallback to local enquiries
-          try {
-            const raw = localStorage.getItem('nestora_enquiries');
-            if (raw && isMounted) setEnquiries(JSON.parse(raw));
-          } catch {
-            // ignore
+          if (isMounted && enqData) {
+            setEnquiries(
+              enqData.map((e) => ({
+                id: e.id,
+                propertyId: e.property_id,
+                propertyName: e.property_name || 'Accommodation Enquiry',
+                studentName: e.student_name,
+                studentPhone: e.student_phone,
+                studentCollege: e.student_college || 'Student',
+                gender: e.gender === 'girls' ? 'girls' : 'boys',
+                moveInDate: e.move_in_date || 'Immediate',
+                sharingPreference: e.sharing_preference || 'Any',
+                message: e.message || '',
+                status: e.status === 'contacted' ? 'contacted' : 'pending',
+                createdAt: e.created_at || new Date().toISOString(),
+              }))
+            );
           }
+        } catch (enqErr) {
+          console.warn('Enquiries query skipped:', enqErr);
         }
       } catch (err) {
         console.error('Error loading profile:', err);
@@ -348,8 +325,8 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-24 min-h-[60vh] flex flex-col items-center justify-center text-center">
-        <Loader2 size={36} className="animate-spin text-emerald-500 mb-3" />
-        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Loading student profile...</p>
+        <Loader2 size={36} className="animate-spin text-[#7B5EA7] mb-3" />
+        <p className="text-xs font-bold uppercase tracking-[0.08em] text-[#6B6580] dark:text-purple-200/70">Loading student profile...</p>
       </div>
     );
   }
@@ -358,28 +335,29 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <div className="max-w-xl mx-auto px-4 py-20 min-h-[70vh] flex flex-col items-center justify-center text-center">
-        <div className="w-20 h-20 rounded-3xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-6 border border-emerald-500/20">
+        <div className="w-20 h-20 rounded-full bg-[#D9C8F0]/60 dark:bg-[#7B5EA7]/30 text-[#7B5EA7] dark:text-purple-200 flex items-center justify-center mx-auto mb-6 border border-[#7B5EA7]/20 shadow-md">
           <GraduationCap size={44} />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-3">
-          Student Portal
+        <h1 className="font-heading text-3xl sm:text-4xl text-[#1B1530] dark:text-white uppercase tracking-tight mb-2">
+          <span className="text-[#7B5EA7]">Student</span> Portal
         </h1>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-8 max-w-md">
+        <p className="text-xs sm:text-sm text-[#6B6580] dark:text-purple-200/70 mb-8 max-w-md">
           Sign in or create an account to view your confirmed student profile, manage your saved stays, and track owner enquiries.
         </p>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4 justify-center">
           <button
             type="button"
             onClick={() => setIsAuthModalOpen(true)}
-            className="px-6 py-3 rounded-2xl text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition shadow-lg shadow-emerald-500/20 inline-flex items-center gap-2 cursor-pointer"
+            className="px-6 py-3 rounded-full text-xs font-bold uppercase tracking-[0.08em] text-white bg-[#7B5EA7] hover:bg-[#4B2E83] transition duration-300 hover:-translate-y-0.5 shadow-[0_10px_25px_rgba(123,94,167,0.3)] inline-flex items-center gap-2 cursor-pointer"
           >
-            <LogIn size={16} />
+            <LogIn size={15} />
             <span>Sign In</span>
+            <span>→</span>
           </button>
           <button
             type="button"
             onClick={() => setIsAuthModalOpen(true)}
-            className="px-6 py-3 rounded-2xl text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
+            className="px-6 py-3 rounded-full text-xs font-bold uppercase tracking-[0.08em] text-[#1B1530] dark:text-white bg-white/70 dark:bg-white/10 hover:bg-[#D9C8F0]/40 transition border border-white/80 dark:border-white/10 cursor-pointer shadow-sm"
           >
             Create Account
           </button>
@@ -403,29 +381,29 @@ export default function ProfilePage() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 pb-24 sm:pb-16 min-h-[75vh]">
       
-      {/* Header Profile Banner with Emerald Theme */}
-      <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl mb-8 relative overflow-hidden">
+      {/* Header Profile Banner with Lavender/Purple Theme */}
+      <div className="bg-gradient-to-r from-[#4B2E83] via-[#66469C] to-[#7B5EA7] rounded-[24px] p-6 sm:p-8 text-white shadow-[0_15px_35px_rgba(123,94,167,0.25)] mb-8 relative overflow-hidden">
         <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none translate-x-8 translate-y-8">
           <GraduationCap size={240} />
         </div>
 
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 relative z-10 text-center sm:text-left">
-          <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center font-black text-3xl shadow-inner shrink-0">
+          <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center font-heading text-4xl shadow-inner shrink-0">
             {student.name ? student.name[0] : 'S'}
           </div>
 
           <div className="flex-1 space-y-1">
             <div className="flex items-center justify-center sm:justify-start gap-2">
-              <h1 className="text-2xl sm:text-3xl font-black">{student.name}</h1>
-              <span className="bg-white/20 text-white text-[11px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
+              <h1 className="font-heading text-3xl sm:text-4xl uppercase tracking-tight">{student.name}</h1>
+              <span className="bg-white/20 text-white text-[10px] font-bold uppercase tracking-[0.08em] px-2.5 py-0.5 rounded-full backdrop-blur-sm">
                 Student
               </span>
             </div>
-            <p className="text-emerald-100 text-xs sm:text-sm flex items-center justify-center sm:justify-start gap-1.5 font-medium">
+            <p className="text-purple-100 text-xs sm:text-sm flex items-center justify-center sm:justify-start gap-1.5 font-medium">
               <GraduationCap size={15} />
               <span>{student.college || 'College not set'}</span>
             </p>
-            <div className="flex items-center justify-center sm:justify-start gap-4 text-xs text-emerald-200 pt-1">
+            <div className="flex items-center justify-center sm:justify-start gap-4 text-xs text-purple-200/90 pt-1">
               <span>{student.phone || 'Phone not set'}</span>
               <span>•</span>
               <span>{student.email}</span>
@@ -436,14 +414,14 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={handleToggleEdit}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold backdrop-blur-sm border border-white/20 transition flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full text-xs font-bold uppercase tracking-[0.08em] backdrop-blur-sm border border-white/20 transition flex items-center gap-1.5 cursor-pointer"
             >
               {isEditing ? <X size={14} /> : <Edit2 size={14} />}
               <span>{isEditing ? 'Cancel' : 'Edit Profile'}</span>
             </button>
             <Link
               href="/saved"
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold backdrop-blur-sm border border-white/20 transition flex items-center gap-1.5"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full text-xs font-bold uppercase tracking-[0.08em] backdrop-blur-sm border border-white/20 transition flex items-center gap-1.5"
             >
               <Heart size={14} className="fill-rose-300 text-rose-300" />
               <span>{savedCount} Saved</span>
@@ -451,7 +429,7 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={handleSignOut}
-              className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-100 rounded-xl text-xs font-bold backdrop-blur-sm border border-rose-400/30 transition flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-100 rounded-full text-xs font-bold uppercase tracking-[0.08em] backdrop-blur-sm border border-rose-400/30 transition flex items-center gap-1.5 cursor-pointer"
             >
               <LogOut size={14} />
               <span>Sign Out</span>
@@ -461,8 +439,8 @@ export default function ProfilePage() {
       </div>
 
       {saveMessage && (
-        <div className="mb-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm font-semibold flex items-center gap-2">
-          <CheckCircle2 size={16} />
+        <div className="mb-6 p-4 rounded-2xl bg-[#D9C8F0]/40 border border-[#7B5EA7]/20 text-[#4B2E83] dark:text-purple-200 text-xs sm:text-sm font-semibold flex items-center gap-2">
+          <CheckCircle2 size={16} className="text-[#7B5EA7]" />
           <span>{saveMessage}</span>
         </div>
       )}
@@ -476,22 +454,22 @@ export default function ProfilePage() {
 
       {/* Edit Profile Form Card */}
       {isEditing && (
-        <div className="mb-8 glass-card rounded-3xl p-6 border border-slate-200/60 dark:border-slate-800/80 space-y-4">
-          <h3 className="font-bold text-slate-900 dark:text-white text-base">Edit Student Profile</h3>
+        <div className="mb-8 glass-card rounded-[24px] p-6 border border-white/80 dark:border-white/10 shadow-[0_10px_30px_rgba(123,94,167,0.12)] space-y-4">
+          <h3 className="font-heading text-xl uppercase tracking-tight text-[#1B1530] dark:text-white">Edit Student Profile</h3>
           <form onSubmit={handleSaveProfile} className="space-y-4 max-w-xl">
             <div className="space-y-1">
-              <label htmlFor="edit-name" className="text-xs font-bold text-slate-700 dark:text-slate-300">Name</label>
+              <label htmlFor="edit-name" className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#6B6580] dark:text-purple-200/80">Name</label>
               <input
                 id="edit-name"
                 type="text"
                 required
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+                className="w-full px-4 py-2.5 rounded-2xl text-sm bg-white/70 dark:bg-black/30 border border-white/80 dark:border-white/10 text-[#1B1530] dark:text-white focus:border-[#7B5EA7] outline-none"
               />
             </div>
             <div className="space-y-1">
-              <label htmlFor="edit-phone" className="text-xs font-bold text-slate-700 dark:text-slate-300">Phone (Optional)</label>
+              <label htmlFor="edit-phone" className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#6B6580] dark:text-purple-200/80">Phone (Optional)</label>
               <input
                 id="edit-phone"
                 type="tel"
@@ -501,10 +479,10 @@ export default function ProfilePage() {
                 placeholder="10-digit mobile number"
                 onChange={handlePhoneChange}
                 onPaste={handlePhonePaste}
-                className={`w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-950 border text-slate-900 dark:text-white transition-colors ${
+                className={`w-full px-4 py-2.5 rounded-2xl text-sm bg-white/70 dark:bg-black/30 border text-[#1B1530] dark:text-white transition-colors ${
                   phoneError
                     ? 'border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500'
-                    : 'border-slate-200 dark:border-slate-800 focus:outline-none focus:border-emerald-500'
+                    : 'border-white/80 dark:border-white/10 focus:outline-none focus:border-[#7B5EA7]'
                 }`}
               />
               {phoneError && (
@@ -514,20 +492,20 @@ export default function ProfilePage() {
               )}
             </div>
             <div className="space-y-1">
-              <label htmlFor="edit-college" className="text-xs font-bold text-slate-700 dark:text-slate-300">College / University</label>
+              <label htmlFor="edit-college" className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#6B6580] dark:text-purple-200/80">College / University</label>
               <input
                 id="edit-college"
                 type="text"
                 value={editCollege}
                 placeholder="e.g. Saurashtra University, Rajkot"
                 onChange={(e) => setEditCollege(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+                className="w-full px-4 py-2.5 rounded-2xl text-sm bg-white/70 dark:bg-black/30 border border-white/80 dark:border-white/10 text-[#1B1530] dark:text-white focus:border-[#7B5EA7] outline-none"
               />
             </div>
             <button
               type="submit"
               disabled={isSaving}
-              className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-[0.08em] text-white bg-[#7B5EA7] hover:bg-[#4B2E83] transition duration-300 shadow-[0_8px_20px_rgba(123,94,167,0.25)] flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
               <span>Save Changes</span>
@@ -541,49 +519,52 @@ export default function ProfilePage() {
         {/* Left Column: Enquiries & Activity */}
         <div className="md:col-span-2 space-y-6">
           
-          <div className="glass-card rounded-3xl p-6 border border-slate-200/60 dark:border-slate-800/80 space-y-4">
+          <div className="glass-card rounded-[24px] p-6 border border-white/80 dark:border-white/10 shadow-[0_10px_30px_rgba(123,94,167,0.12)] space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Clock size={18} className="text-emerald-600 dark:text-emerald-400" />
-                <h3 className="font-bold text-slate-900 dark:text-white text-lg">My Recent Enquiries</h3>
+                <div className="w-8 h-8 rounded-full bg-[#D9C8F0]/60 dark:bg-[#7B5EA7]/30 flex items-center justify-center text-[#7B5EA7] dark:text-purple-200">
+                  <Clock size={16} />
+                </div>
+                <h3 className="font-heading text-xl uppercase tracking-tight text-[#1B1530] dark:text-white">My Recent Enquiries</h3>
               </div>
-              <span className="text-xs text-slate-400 dark:text-slate-500">{enquiries.length} submitted</span>
+              <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#6B6580] dark:text-purple-300/60">{enquiries.length} submitted</span>
             </div>
 
             {enquiries.length === 0 ? (
-              <div className="p-8 text-center bg-slate-50/70 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-                <MessageSquare size={32} className="mx-auto text-slate-400 mb-2 opacity-60" />
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">No enquiries submitted yet</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+              <div className="p-8 text-center bg-white/50 dark:bg-black/20 rounded-2xl border border-dashed border-[#D9C8F0] dark:border-white/10">
+                <MessageSquare size={32} className="mx-auto text-[#7B5EA7] mb-2 opacity-60" />
+                <p className="text-sm font-semibold text-[#1B1530] dark:text-white mb-1">No enquiries submitted yet</p>
+                <p className="text-xs text-[#6B6580] dark:text-purple-200/70 mb-4">
                   When you send an enquiry for a PG or hostel, your contact history will appear here.
                 </p>
                 <Link
                   href="/search"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition shadow-md shadow-emerald-500/20"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.08em] px-5 py-2.5 bg-[#7B5EA7] text-white rounded-full hover:bg-[#4B2E83] transition shadow-[0_8px_20px_rgba(123,94,167,0.25)]"
                 >
                   <Compass size={14} />
                   <span>Find Stays Near College</span>
+                  <span>→</span>
                 </Link>
               </div>
             ) : (
               <div className="space-y-3">
                 {enquiries.map((enq) => (
-                  <div key={enq.id} className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-900/70 border border-slate-200/60 dark:border-slate-800/80 space-y-2">
+                  <div key={enq.id} className="p-4 rounded-2xl bg-white/60 dark:bg-black/20 border border-white/80 dark:border-white/10 space-y-2">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-slate-900 dark:text-white text-sm">{enq.propertyName}</h4>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                        <CheckCircle2 size={12} />
+                      <h4 className="font-bold text-[#1B1530] dark:text-white text-sm">{enq.propertyName}</h4>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.06em] text-[#4B2E83] dark:text-purple-200 bg-[#D9C8F0]/60 dark:bg-[#7B5EA7]/20 px-2.5 py-0.5 rounded-full border border-[#7B5EA7]/20">
+                        <CheckCircle2 size={12} className="text-[#7B5EA7]" />
                         Sent to Owner
                       </span>
                     </div>
 
-                    <div className="text-xs text-slate-600 dark:text-slate-300 flex flex-wrap gap-x-4 gap-y-1">
-                      <span>Preference: <strong className="text-slate-900 dark:text-white">{enq.sharingPreference}</strong></span>
-                      <span>Move-in: <strong className="text-slate-900 dark:text-white">{enq.moveInDate}</strong></span>
+                    <div className="text-xs text-[#6B6580] dark:text-purple-200/80 flex flex-wrap gap-x-4 gap-y-1">
+                      <span>Preference: <strong className="text-[#1B1530] dark:text-white">{enq.sharingPreference}</strong></span>
+                      <span>Move-in: <strong className="text-[#1B1530] dark:text-white">{enq.moveInDate}</strong></span>
                     </div>
 
                     {enq.message && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400 italic bg-white dark:bg-slate-950 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                      <p className="text-xs text-[#6B6580] dark:text-purple-200/70 italic bg-white/70 dark:bg-black/30 p-2.5 rounded-xl border border-white/80 dark:border-white/5">
                         &quot;{enq.message}&quot;
                       </p>
                     )}
@@ -594,22 +575,24 @@ export default function ProfilePage() {
           </div>
 
           {/* Student Accommodation Checklist */}
-          <div className="glass-card rounded-3xl p-6 border border-slate-200/60 dark:border-slate-800/80 space-y-4">
+          <div className="glass-card rounded-[24px] p-6 border border-white/80 dark:border-white/10 shadow-[0_10px_30px_rgba(123,94,167,0.12)] space-y-4">
             <div className="flex items-center gap-2">
-              <ShieldCheck size={18} className="text-emerald-600 dark:text-emerald-400" />
-              <h3 className="font-bold text-slate-900 dark:text-white text-lg">Student Stay Checklist</h3>
+              <div className="w-8 h-8 rounded-full bg-[#D9C8F0]/60 dark:bg-[#7B5EA7]/30 flex items-center justify-center text-[#7B5EA7] dark:text-purple-200">
+                <ShieldCheck size={16} />
+              </div>
+              <h3 className="font-heading text-xl uppercase tracking-tight text-[#1B1530] dark:text-white">Student Stay Checklist</h3>
             </div>
-            <ul className="space-y-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+            <ul className="space-y-2.5 text-xs sm:text-sm text-[#1B1530] dark:text-purple-100">
               <li className="flex items-start gap-2">
-                <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                <CheckCircle2 size={16} className="text-[#7B5EA7] shrink-0 mt-0.5" />
                 <span>Always inspect water pressure, attached washroom and mattress hygiene in person.</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                <CheckCircle2 size={16} className="text-[#7B5EA7] shrink-0 mt-0.5" />
                 <span>Confirm food menu days: Ask if Sunday special meals and tea/snacks are included.</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                <CheckCircle2 size={16} className="text-[#7B5EA7] shrink-0 mt-0.5" />
                 <span>Clarify curfew & gate closing times with the owner before booking.</span>
               </li>
             </ul>
@@ -620,59 +603,59 @@ export default function ProfilePage() {
         {/* Right Column: Shortcuts & Quick Actions */}
         <div className="space-y-6">
           
-          <div className="glass-card rounded-3xl p-6 border border-slate-200/60 dark:border-slate-800/80 space-y-4">
-            <h3 className="font-bold text-slate-900 dark:text-white text-sm uppercase tracking-wider">
+          <div className="glass-card rounded-[24px] p-6 border border-white/80 dark:border-white/10 shadow-[0_10px_30px_rgba(123,94,167,0.12)] space-y-4">
+            <h3 className="font-heading text-lg uppercase tracking-tight text-[#1B1530] dark:text-white">
               Quick Shortcuts
             </h3>
             <div className="space-y-2">
               <Link
                 href="/saved"
-                className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 hover:bg-rose-500/10 text-slate-800 dark:text-slate-200 transition text-xs font-semibold"
+                className="w-full flex items-center justify-between p-3 rounded-2xl bg-white/60 dark:bg-black/20 hover:bg-[#D9C8F0]/30 text-[#1B1530] dark:text-white transition text-xs font-semibold border border-white/80 dark:border-white/10"
               >
                 <div className="flex items-center gap-2">
-                  <Heart size={16} className="text-rose-500" />
+                  <Heart size={16} className="text-rose-500 fill-rose-500" />
                   <span>Saved Stays</span>
                 </div>
-                <span className="text-xs font-bold text-slate-500">{savedCount}</span>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#D9C8F0]/50 text-[#4B2E83] dark:bg-[#7B5EA7]/20 dark:text-purple-200">{savedCount}</span>
               </Link>
 
               <Link
                 href="/search"
-                className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 hover:bg-emerald-500/10 text-slate-800 dark:text-slate-200 transition text-xs font-semibold"
+                className="w-full flex items-center justify-between p-3 rounded-2xl bg-white/60 dark:bg-black/20 hover:bg-[#D9C8F0]/30 text-[#1B1530] dark:text-white transition text-xs font-semibold border border-white/80 dark:border-white/10"
               >
                 <div className="flex items-center gap-2">
-                  <Compass size={16} className="text-emerald-500" />
+                  <Compass size={16} className="text-[#7B5EA7]" />
                   <span>Search by College / Area</span>
                 </div>
               </Link>
 
               <Link
                 href="/admin/login"
-                className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition text-xs font-semibold"
+                className="w-full flex items-center justify-between p-3 rounded-2xl bg-white/60 dark:bg-black/20 hover:bg-[#D9C8F0]/30 text-[#6B6580] dark:text-purple-200/70 hover:text-[#7B5EA7] dark:hover:text-white transition text-xs font-semibold border border-white/80 dark:border-white/10"
               >
                 <div className="flex items-center gap-2">
-                  <ShieldCheck size={16} className="text-slate-400" />
+                  <ShieldCheck size={16} className="text-[#7B5EA7]" />
                   <span>Admin Portal</span>
                 </div>
-                <span className="text-[10px] text-slate-400">Login &rarr;</span>
+                <span className="text-[10px] text-[#6B6580]">Login &rarr;</span>
               </Link>
             </div>
           </div>
 
           {/* Owner Listing Card */}
-          <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-emerald-950 rounded-3xl p-6 text-white space-y-4 shadow-xl border border-emerald-500/20">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center font-bold text-lg shadow-md shadow-emerald-600/30">
+          <div className="bg-gradient-to-br from-[#4B2E83] via-[#351E60] to-[#1B1530] rounded-[24px] p-6 text-white space-y-4 shadow-xl border border-white/10">
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-lg shadow-md">
               <Building2 size={20} />
             </div>
             <div>
-              <h4 className="font-bold text-base">Own a PG or Hostel?</h4>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+              <h4 className="font-heading text-xl uppercase tracking-tight">Own a PG or Hostel?</h4>
+              <p className="text-xs text-purple-200/80 mt-1 leading-relaxed">
                 List your student property on Nestora and connect directly with thousands of verified college students.
               </p>
             </div>
             <button
               onClick={() => setIsListModalOpen(true)}
-              className="w-full py-3 bg-white text-slate-900 hover:bg-emerald-50 hover:text-emerald-700 font-bold text-xs rounded-xl transition cursor-pointer"
+              className="w-full py-3 bg-white text-[#4B2E83] hover:bg-[#D9C8F0] font-bold text-xs uppercase tracking-[0.08em] rounded-full transition duration-300 hover:-translate-y-0.5 cursor-pointer shadow-md"
             >
               List Your Stay For Free
             </button>

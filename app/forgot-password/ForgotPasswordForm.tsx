@@ -47,23 +47,23 @@ export function ForgotPasswordForm() {
   // If request succeeded, show neutral confirmation message
   if (state?.success) {
     return (
-      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/80 rounded-3xl p-8 sm:p-10 shadow-2xl text-center space-y-6">
-        <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20">
+      <div className="glass-card bg-white/80 dark:bg-[#161024]/80 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-[24px] p-8 sm:p-10 shadow-[0_15px_35px_rgba(123,94,167,0.18)] text-center space-y-6">
+        <div className="w-16 h-16 rounded-full bg-[#D9C8F0]/60 dark:bg-[#7B5EA7]/30 text-[#7B5EA7] dark:text-purple-200 flex items-center justify-center mx-auto border border-[#7B5EA7]/20 shadow-sm">
           <CheckCircle2 size={36} />
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white">Check Your Email</h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
-            If an account is associated with <strong className="text-slate-900 dark:text-white font-semibold">{state.email}</strong>, we have sent instructions to reset your password.
+          <h2 className="font-heading text-2xl sm:text-3xl uppercase tracking-tight text-[#1B1530] dark:text-white">Check Your Email</h2>
+          <p className="text-xs sm:text-sm text-[#6B6580] dark:text-purple-200/70 max-w-sm mx-auto leading-relaxed">
+            If an account is associated with <strong className="text-[#1B1530] dark:text-white font-semibold">{state.email}</strong>, we have sent instructions to reset your password.
           </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-[#6B6580] dark:text-purple-200/60">
             Please check your inbox as well as your spam folder.
           </p>
         </div>
 
         {resendStatus && (
-          <div className="p-3 text-xs rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+          <div className="p-3 text-xs rounded-2xl bg-[#D9C8F0]/30 text-[#4B2E83] dark:text-purple-200 border border-[#7B5EA7]/20">
             {resendStatus}
           </div>
         )}
@@ -74,7 +74,7 @@ export function ForgotPasswordForm() {
               type="button"
               onClick={() => handleResend(state.email!)}
               disabled={resendLoading || resendCooldown}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-bold text-[#4B2E83] dark:text-purple-200 bg-[#D9C8F0]/50 hover:bg-[#D9C8F0] border border-[#7B5EA7]/20 transition disabled:opacity-50 cursor-pointer"
             >
               {resendLoading ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -87,7 +87,7 @@ export function ForgotPasswordForm() {
 
           <Link
             href="/login"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-[0.08em] text-[#1B1530] dark:text-white bg-white/70 dark:bg-white/10 hover:bg-[#D9C8F0]/40 transition border border-white/80 dark:border-white/10"
           >
             <ArrowLeft size={14} />
             <span>Back to Sign In</span>
@@ -98,7 +98,7 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/80 rounded-3xl p-8 sm:p-10 shadow-2xl space-y-6">
+    <div className="glass-card bg-white/80 dark:bg-[#161024]/80 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-[24px] p-8 sm:p-10 shadow-[0_15px_35px_rgba(123,94,167,0.18)] space-y-6">
       
       {state?.error && (
         <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs sm:text-sm font-semibold">
@@ -109,8 +109,8 @@ export function ForgotPasswordForm() {
       <form action={formAction} className="space-y-4">
         {/* Email Address */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-            <Mail size={14} className="text-emerald-500" />
+          <label className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#6B6580] dark:text-purple-200/80 flex items-center gap-1.5">
+            <Mail size={14} className="text-[#7B5EA7]" />
             <span>Registered Email Address</span>
           </label>
           <input
@@ -119,7 +119,7 @@ export function ForgotPasswordForm() {
             required
             defaultValue={state?.email || ''}
             placeholder="student@university.edu"
-            className="w-full px-4 py-3 rounded-2xl text-sm bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
+            className="w-full px-4 py-3 rounded-2xl text-sm bg-white/70 dark:bg-black/30 border border-white/80 dark:border-white/10 text-[#1B1530] dark:text-white placeholder-[#6B6580]/50 focus:outline-none focus:ring-2 focus:ring-[#7B5EA7]/25 focus:border-[#7B5EA7] transition"
           />
         </div>
 
@@ -127,7 +127,7 @@ export function ForgotPasswordForm() {
         <button
           type="submit"
           disabled={isPending}
-          className="w-full mt-2 py-3.5 px-6 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+          className="w-full mt-2 py-3.5 px-6 rounded-full text-xs sm:text-sm font-bold uppercase tracking-[0.08em] text-white bg-[#7B5EA7] hover:bg-[#4B2E83] transition duration-300 hover:-translate-y-0.5 shadow-[0_10px_25px_rgba(123,94,167,0.3)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
         >
           {isPending ? (
             <>
@@ -144,9 +144,9 @@ export function ForgotPasswordForm() {
       </form>
 
       {/* Footer link back to Sign In */}
-      <div className="pt-4 border-t border-slate-200/60 dark:border-slate-800/60 text-center text-xs text-slate-500 dark:text-slate-400">
+      <div className="pt-4 border-t border-[#D9C8F0]/50 dark:border-white/10 text-center text-xs text-[#6B6580] dark:text-purple-200/70">
         Remembered your password?{' '}
-        <Link href="/login" className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
+        <Link href="/login" className="font-bold text-[#7B5EA7] dark:text-purple-300 hover:underline">
           Back to Sign In
         </Link>
       </div>

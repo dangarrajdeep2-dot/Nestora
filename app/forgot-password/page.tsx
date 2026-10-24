@@ -16,20 +16,20 @@ export default function ForgotPasswordPage() {
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2 group">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 group-hover:scale-105 transition-all">
+            <div className="w-14 h-14 rounded-full bg-[#D9C8F0]/60 dark:bg-[#7B5EA7]/30 text-[#7B5EA7] dark:text-purple-200 flex items-center justify-center border border-[#7B5EA7]/20 group-hover:scale-105 transition-all shadow-sm">
               <GraduationCap size={28} />
             </div>
           </Link>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Reset Password
+          <h1 className="font-heading text-3xl sm:text-4xl text-[#1B1530] dark:text-white uppercase tracking-tight">
+            <span className="text-[#7B5EA7]">Reset</span> Password
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+          <p className="text-xs sm:text-sm text-[#6B6580] dark:text-purple-200/70 font-medium">
             Enter your student email and we&apos;ll send you a password reset link
           </p>
         </div>
 
         {/* Form Container with Suspense */}
-        <Suspense fallback={<div className="p-8 text-center text-sm text-slate-400">Loading...</div>}>
+        <Suspense fallback={<div className="p-8 text-center text-xs font-bold uppercase tracking-[0.08em] text-[#6B6580]">Loading...</div>}>
           <ForgotPasswordForm />
         </Suspense>
 

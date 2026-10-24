@@ -63,21 +63,21 @@ export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
   };
 
   return (
-    <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200/60 dark:border-slate-800/80 space-y-4">
+    <div className="glass-card rounded-[24px] p-6 sm:p-7 border border-white/80 dark:border-white/10 shadow-[0_10px_30px_rgba(123,94,167,0.12)] space-y-4">
       
       {/* Header with Title and Google Maps Tag */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100 dark:border-slate-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#D9C8F0]/40 dark:border-white/10">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20"></span>
+            <h2 className="font-heading text-2xl sm:text-3xl text-[#1B1530] dark:text-white uppercase tracking-tight flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#7B5EA7] ring-4 ring-[#7B5EA7]/20"></span>
               Google Maps Location
             </h2>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+            <span className="text-[11px] font-bold uppercase tracking-[0.08em] px-2.5 py-0.5 rounded-full bg-[#D9C8F0]/50 text-[#4B2E83] dark:bg-[#7B5EA7]/20 dark:text-purple-200 border border-[#7B5EA7]/20">
               Live Map
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs text-[#6B6580] dark:text-purple-200/70 mt-1">
             Exact pin location, campus distance & GPS navigation
           </p>
         </div>
@@ -87,19 +87,21 @@ export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
           href={googleMapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition border border-slate-200/60 dark:border-slate-700 self-start sm:self-auto"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/70 dark:bg-white/10 hover:bg-[#D9C8F0]/40 text-[#4B2E83] dark:text-purple-200 text-xs font-bold uppercase tracking-[0.08em] transition border border-[#D9C8F0] dark:border-white/10 shadow-sm self-start sm:self-auto cursor-pointer"
         >
-          <Compass size={14} className="text-emerald-500" />
+          <Compass size={14} className="text-[#7B5EA7]" />
           <span>Open Google Maps</span>
           <ExternalLink size={11} className="opacity-70" />
         </a>
       </div>
 
       {/* Address & Quick Info Strip */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-50/70 dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200/50 dark:border-slate-800/60">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white/60 dark:bg-[#1B1530]/40 p-3.5 rounded-2xl border border-white/80 dark:border-white/10">
         <div className="flex items-start gap-2 min-w-0">
-          <MapPin size={16} className="text-emerald-500 shrink-0 mt-0.5" />
-          <span className="text-xs text-slate-700 dark:text-slate-300 font-medium line-clamp-2">
+          <div className="w-7 h-7 rounded-full bg-[#D9C8F0]/60 dark:bg-[#7B5EA7]/30 flex items-center justify-center shrink-0 mt-0.5 text-[#7B5EA7] dark:text-purple-200">
+            <MapPin size={14} />
+          </div>
+          <span className="text-xs text-[#1B1530] dark:text-purple-100 font-medium line-clamp-2 self-center">
             {property.address}
           </span>
         </div>
@@ -107,7 +109,7 @@ export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
         <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
           {/* Coordinates Badge */}
           {property.latitude && property.longitude ? (
-            <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 hidden md:inline">
+            <span className="text-[11px] font-mono text-[#6B6580] dark:text-purple-300/70 hidden md:inline">
               {property.latitude.toFixed(4)}°, {property.longitude.toFixed(4)}°
             </span>
           ) : null}
@@ -116,13 +118,13 @@ export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
           <button
             type="button"
             onClick={handleCopyAddress}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200/80 dark:border-slate-700 shadow-sm transition active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/80 dark:bg-white/10 hover:bg-[#D9C8F0]/40 text-[#4B2E83] dark:text-purple-200 text-xs font-bold uppercase tracking-[0.08em] border border-[#D9C8F0] dark:border-white/10 shadow-sm transition active:scale-95 cursor-pointer"
             title="Copy exact address"
           >
             {copied ? (
               <>
-                <Check size={12} className="text-emerald-500" />
-                <span className="text-emerald-600 dark:text-emerald-400">Copied!</span>
+                <Check size={12} className="text-[#7B5EA7]" />
+                <span className="text-[#7B5EA7] dark:text-purple-300">Copied!</span>
               </>
             ) : (
               <>
@@ -135,11 +137,11 @@ export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
       </div>
 
       {/* Google Map Display Container */}
-      <div className="relative h-72 sm:h-84 w-full rounded-2xl overflow-hidden shadow-inner border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900">
+      <div className="relative h-72 sm:h-84 w-full rounded-2xl overflow-hidden shadow-inner border border-white/80 dark:border-white/10 bg-[#E6DAF5]/40 dark:bg-[#1B1530]/60">
         {/* Loading Skeleton */}
         {!mapLoaded && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-900 animate-pulse text-slate-400 gap-2">
-            <MapPin size={32} className="text-emerald-500 animate-bounce" />
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#F3EDFB]/80 dark:bg-[#1B1530]/80 animate-pulse text-[#7B5EA7] gap-2">
+            <MapPin size={32} className="text-[#7B5EA7] animate-bounce" />
             <span className="text-xs font-semibold">Connecting to Google Maps...</span>
           </div>
         )}
@@ -163,7 +165,7 @@ export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
           href={directionsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute bottom-3 right-3 z-10 bg-white/95 dark:bg-slate-900/95 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 text-slate-800 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl shadow-md border border-slate-200/80 dark:border-slate-700 flex items-center gap-1.5 transition"
+          className="absolute bottom-3 right-3 z-10 bg-white/90 dark:bg-[#161024]/90 hover:bg-[#4B2E83] hover:text-white text-[#1B1530] dark:text-white text-xs font-bold uppercase tracking-[0.08em] px-3.5 py-1.5 rounded-full shadow-md border border-white/80 dark:border-white/10 flex items-center gap-1.5 transition"
         >
           <Maximize2 size={12} />
           <span>Full View ↗</span>
@@ -177,7 +179,7 @@ export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
           href={directionsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="btn-3d inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition flex-1 sm:flex-initial"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#7B5EA7] hover:bg-[#4B2E83] text-white text-xs sm:text-sm font-bold uppercase tracking-[0.08em] shadow-[0_10px_25px_rgba(123,94,167,0.3)] hover:-translate-y-0.5 transition duration-300 flex-1 sm:flex-initial"
         >
           <Navigation size={15} />
           <span>Get Directions</span>
@@ -189,9 +191,9 @@ export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
           href={googleMapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-slate-700 shadow-sm transition flex-1 sm:flex-initial"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full bg-white/70 dark:bg-white/10 hover:bg-[#D9C8F0]/40 text-[#1B1530] dark:text-white text-xs sm:text-sm font-bold uppercase tracking-[0.08em] border border-white/80 dark:border-white/10 shadow-sm transition flex-1 sm:flex-initial cursor-pointer"
         >
-          <Compass size={15} className="text-emerald-500" />
+          <Compass size={15} className="text-[#7B5EA7]" />
           <span>Open in Google Maps App</span>
           <ExternalLink size={12} className="opacity-60" />
         </a>
@@ -202,9 +204,9 @@ export function GoogleMapLocation({ property }: GoogleMapLocationProps) {
             href={collegeRouteUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 text-xs sm:text-sm font-bold border border-emerald-500/30 transition w-full sm:w-auto"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full bg-[#D9C8F0]/40 dark:bg-[#7B5EA7]/20 hover:bg-[#D9C8F0]/70 text-[#4B2E83] dark:text-purple-200 text-xs sm:text-sm font-bold border border-[#7B5EA7]/20 transition w-full sm:w-auto"
           >
-            <Footprints size={15} className="text-emerald-600 dark:text-emerald-400" />
+            <Footprints size={15} className="text-[#7B5EA7] dark:text-purple-300" />
             <span>Walking route to {property.nearbyCollegeName}</span>
             <ExternalLink size={12} className="opacity-60" />
           </a>

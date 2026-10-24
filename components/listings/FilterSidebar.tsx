@@ -98,19 +98,21 @@ export function FilterSidebar({
   if (filters.sharing && filters.sharing.length > 0) activeFilterCount += filters.sharing.length;
   if (filters.amenities && filters.amenities.length > 0) activeFilterCount += filters.amenities.length;
   if (filters.furnishedOnly) activeFilterCount++;
-  if (filters.availableNowOnly) activeFilterCount++;
   if (filters.verifiedOnly) activeFilterCount++;
+  if (filters.availableNowOnly) activeFilterCount++;
 
   return (
-    <div className={`glass-card rounded-3xl p-5 border border-slate-200/60 dark:border-slate-800/80 ${isMobileDrawer ? 'h-full overflow-y-auto' : 'shadow-sm'}`}>
+    <div className={`glass-card p-6 rounded-[24px] ${isMobileDrawer ? 'border-none shadow-none bg-transparent' : ''}`}>
       
-      {/* Header with Title and Reset */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-200/60 dark:border-slate-800/80 mb-5">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-200/50 dark:border-white/10">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal size={18} className="text-emerald-600 dark:text-emerald-400" />
-          <h3 className="font-bold text-slate-900 dark:text-white text-base">Filters</h3>
+          <div className="w-8 h-8 rounded-full bg-[#D9C8F0]/60 dark:bg-[#7B5EA7]/25 text-[#4B2E83] dark:text-[#D9C8F0] flex items-center justify-center">
+            <SlidersHorizontal size={15} />
+          </div>
+          <h3 className="font-bold text-[#1B1530] dark:text-white text-base">Filters</h3>
           {activeFilterCount > 0 && (
-            <span className="bg-emerald-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+            <span className="bg-[#7B5EA7] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
               {activeFilterCount}
             </span>
           )}
@@ -120,10 +122,10 @@ export function FilterSidebar({
           <button
             type="button"
             onClick={onReset}
-            className="text-xs font-semibold text-rose-500 hover:text-rose-600 flex items-center gap-1 hover:underline cursor-pointer"
+            className="text-xs font-bold uppercase tracking-[0.06em] text-rose-500 hover:text-rose-600 flex items-center gap-1 hover:underline cursor-pointer"
           >
             <RotateCcw size={12} />
-            <span>Reset All</span>
+            <span>Reset</span>
           </button>
         )}
       </div>
@@ -132,17 +134,17 @@ export function FilterSidebar({
 
         {/* 1. For (Gender) */}
         <div>
-          <label className="block text-xs font-bold text-slate-900 dark:text-slate-200 uppercase tracking-wider mb-2.5">
+          <label className="block text-[11px] font-bold text-[#6B6580] dark:text-[#A89EC0] uppercase tracking-[0.08em] mb-2.5">
             Gender / Accommodation For
           </label>
-          <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200/50 dark:border-slate-800/60">
+          <div className="grid grid-cols-3 gap-1.5 p-1 bg-[#D9C8F0]/30 dark:bg-[#2C1D4A]/60 rounded-full border border-white/70 dark:border-white/10">
             <button
               type="button"
               onClick={() => handleGenderChange('all')}
-              className={`py-2 text-xs font-semibold rounded-xl transition ${
+              className={`py-2 text-xs font-bold uppercase tracking-[0.06em] rounded-full transition cursor-pointer ${
                 !filters.gender || filters.gender === 'all'
-                  ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-white dark:bg-[#371E68] text-[#1B1530] dark:text-white shadow-sm'
+                  : 'text-[#6B6580] dark:text-[#A89EC0] hover:text-[#1B1530]'
               }`}
             >
               All
@@ -150,10 +152,10 @@ export function FilterSidebar({
             <button
               type="button"
               onClick={() => handleGenderChange('boys')}
-              className={`py-2 text-xs font-semibold rounded-xl transition ${
+              className={`py-2 text-xs font-bold uppercase tracking-[0.06em] rounded-full transition cursor-pointer ${
                 filters.gender === 'boys'
-                  ? 'bg-emerald-600 dark:bg-emerald-500 text-white shadow-sm font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[#7B5EA7] text-white shadow-sm'
+                  : 'text-[#6B6580] dark:text-[#A89EC0] hover:text-[#1B1530]'
               }`}
             >
               Boys
@@ -161,10 +163,10 @@ export function FilterSidebar({
             <button
               type="button"
               onClick={() => handleGenderChange('girls')}
-              className={`py-2 text-xs font-semibold rounded-xl transition ${
+              className={`py-2 text-xs font-bold uppercase tracking-[0.06em] rounded-full transition cursor-pointer ${
                 filters.gender === 'girls'
-                  ? 'bg-rose-500 text-white shadow-sm font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[#9D7FD3] text-white shadow-sm'
+                  : 'text-[#6B6580] dark:text-[#A89EC0] hover:text-[#1B1530]'
               }`}
             >
               Girls
@@ -174,7 +176,7 @@ export function FilterSidebar({
 
         {/* 2. Property Type */}
         <div>
-          <label className="block text-xs font-bold text-slate-900 dark:text-slate-200 uppercase tracking-wider mb-2.5">
+          <label className="block text-[11px] font-bold text-[#6B6580] dark:text-[#A89EC0] uppercase tracking-[0.08em] mb-2.5">
             Property Type
           </label>
           <div className="flex flex-wrap gap-2">
@@ -185,10 +187,10 @@ export function FilterSidebar({
                   key={type}
                   type="button"
                   onClick={() => handlePropertyTypeToggle(type)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition border flex items-center gap-1.5 ${
+                  className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[0.06em] transition border flex items-center gap-1.5 cursor-pointer ${
                     isSelected
-                      ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-300 dark:bg-emerald-500/20'
-                      : 'bg-white/80 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                      ? 'bg-[#7B5EA7] border-[#7B5EA7] text-white shadow-sm'
+                      : 'bg-white/70 dark:bg-[#201538]/70 border-white/80 dark:border-white/10 text-[#1B1530] dark:text-[#F3EDFB] hover:border-[#7B5EA7]/40'
                   }`}
                 >
                   {isSelected && <Check size={12} />}
@@ -202,10 +204,10 @@ export function FilterSidebar({
         {/* 3. Distance / Radius */}
         <div>
           <div className="flex justify-between items-center mb-2">
-            <label className="text-xs font-bold text-slate-900 dark:text-slate-200 uppercase tracking-wider">
+            <label className="text-[11px] font-bold text-[#6B6580] dark:text-[#A89EC0] uppercase tracking-[0.08em]">
               Distance Radius
             </label>
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+            <span className="text-xs font-bold text-[#7B5EA7] dark:text-[#D9C8F0]">
               {filters.maxDistanceKm ? `Within ${filters.maxDistanceKm} km` : 'Any Distance'}
             </span>
           </div>
@@ -217,10 +219,10 @@ export function FilterSidebar({
                   key={km}
                   type="button"
                   onClick={() => handleDistanceChange(isSelected ? 0 : km)}
-                  className={`py-1.5 rounded-xl text-xs font-semibold border transition ${
+                  className={`py-2 rounded-full text-xs font-bold uppercase tracking-[0.06em] border transition cursor-pointer ${
                     isSelected
-                      ? 'bg-emerald-600 border-emerald-600 text-white font-bold'
-                      : 'bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'bg-[#7B5EA7] border-[#7B5EA7] text-white shadow-sm'
+                      : 'bg-white/70 dark:bg-[#201538]/70 border-white/80 dark:border-white/10 text-[#1B1530] dark:text-[#F3EDFB] hover:bg-white'
                   }`}
                 >
                   &lt; {km} km
@@ -233,40 +235,40 @@ export function FilterSidebar({
         {/* 4. Budget */}
         <div>
           <div className="flex justify-between items-center mb-2">
-            <label className="text-xs font-bold text-slate-900 dark:text-slate-200 uppercase tracking-wider">
+            <label className="text-[11px] font-bold text-[#6B6580] dark:text-[#A89EC0] uppercase tracking-[0.08em]">
               Monthly Budget (₹)
             </label>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mb-1 block">Min Price</span>
+              <span className="text-[10px] text-[#6B6580] dark:text-[#A89EC0] font-bold uppercase tracking-[0.06em] mb-1 block">Min Price</span>
               <div className="relative">
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">₹</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B6580] text-xs">₹</span>
                 <input
                   type="number"
                   placeholder="Min"
                   value={filters.minPrice || ''}
                   onChange={(e) => handleMinPriceChange(Number(e.target.value) || 0)}
-                  className="w-full pl-6 pr-2 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:border-emerald-500 outline-none"
+                  className="w-full pl-7 pr-3 py-2 text-xs rounded-xl border border-white/80 dark:border-white/10 bg-white/70 dark:bg-[#201538]/70 text-[#1B1530] dark:text-white focus:border-[#7B5EA7] focus:ring-2 focus:ring-[#7B5EA7]/25 outline-none"
                 />
               </div>
             </div>
             <div>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mb-1 block">Max Price</span>
+              <span className="text-[10px] text-[#6B6580] dark:text-[#A89EC0] font-bold uppercase tracking-[0.06em] mb-1 block">Max Price</span>
               <div className="relative">
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">₹</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B6580] text-xs">₹</span>
                 <input
                   type="number"
                   placeholder="Max"
                   value={filters.maxPrice || ''}
                   onChange={(e) => handleMaxPriceChange(Number(e.target.value) || 0)}
-                  className="w-full pl-6 pr-2 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:border-emerald-500 outline-none"
+                  className="w-full pl-7 pr-3 py-2 text-xs rounded-xl border border-white/80 dark:border-white/10 bg-white/70 dark:bg-[#201538]/70 text-[#1B1530] dark:text-white focus:border-[#7B5EA7] focus:ring-2 focus:ring-[#7B5EA7]/25 outline-none"
                 />
               </div>
             </div>
           </div>
           {/* Quick budget chips */}
-          <div className="flex flex-wrap gap-1.5 mt-2">
+          <div className="flex flex-wrap gap-1.5 mt-2.5">
             {[
               { label: 'Under ₹6k', max: 6000 },
               { label: '₹6k - ₹10k', min: 6000, max: 10000 },
@@ -282,7 +284,7 @@ export function FilterSidebar({
                     maxPrice: preset.max || 0,
                   });
                 }}
-                className="text-[11px] bg-slate-100/70 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-800"
+                className="text-[10px] font-bold uppercase tracking-[0.06em] bg-[#D9C8F0]/40 dark:bg-[#7B5EA7]/20 hover:bg-[#D9C8F0] text-[#4B2E83] dark:text-[#D9C8F0] px-2.5 py-1 rounded-full border border-[#7B5EA7]/20 transition cursor-pointer"
               >
                 {preset.label}
               </button>
@@ -292,7 +294,7 @@ export function FilterSidebar({
 
         {/* 5. Room Type (Sharing) */}
         <div>
-          <label className="block text-xs font-bold text-slate-900 dark:text-slate-200 uppercase tracking-wider mb-2.5">
+          <label className="block text-[11px] font-bold text-[#6B6580] dark:text-[#A89EC0] uppercase tracking-[0.08em] mb-2.5">
             Room Type / Sharing
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -303,14 +305,14 @@ export function FilterSidebar({
                   key={opt.id}
                   type="button"
                   onClick={() => handleSharingToggle(opt.id)}
-                  className={`px-3 py-2 rounded-xl text-xs font-medium text-left border flex items-center justify-between transition ${
+                  className={`px-3 py-2.5 rounded-2xl text-xs font-semibold text-left border flex items-center justify-between transition cursor-pointer ${
                     isSelected
-                      ? 'bg-emerald-500/10 border-emerald-500 text-emerald-800 dark:text-emerald-300 font-bold dark:bg-emerald-500/20'
-                      : 'bg-white/80 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                      ? 'bg-[#D9C8F0]/50 border-[#7B5EA7] text-[#4B2E83] dark:text-[#D9C8F0] font-bold dark:bg-[#7B5EA7]/25'
+                      : 'bg-white/70 dark:bg-[#201538]/70 border-white/80 dark:border-white/10 text-[#1B1530] dark:text-[#F3EDFB] hover:border-[#7B5EA7]/40'
                   }`}
                 >
                   <span>{opt.label}</span>
-                  {isSelected && <Check size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />}
+                  {isSelected && <Check size={13} className="text-[#7B5EA7] dark:text-[#D9C8F0] shrink-0" />}
                 </button>
               );
             })}
@@ -319,7 +321,7 @@ export function FilterSidebar({
 
         {/* 6. Amenities */}
         <div>
-          <label className="block text-xs font-bold text-slate-900 dark:text-slate-200 uppercase tracking-wider mb-2.5">
+          <label className="block text-[11px] font-bold text-[#6B6580] dark:text-[#A89EC0] uppercase tracking-[0.08em] mb-2.5">
             Amenities
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -328,17 +330,17 @@ export function FilterSidebar({
               return (
                 <label
                   key={amenity}
-                  className={`flex items-center gap-2 p-2 rounded-xl text-xs cursor-pointer border transition select-none ${
+                  className={`flex items-center gap-2 p-2.5 rounded-2xl text-xs cursor-pointer border transition select-none ${
                     isChecked
-                      ? 'bg-emerald-500/10 border-emerald-400 text-emerald-900 dark:text-emerald-200 font-semibold dark:bg-emerald-500/20'
-                      : 'bg-slate-50/70 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'bg-[#D9C8F0]/40 border-[#7B5EA7] text-[#4B2E83] dark:text-[#D9C8F0] font-bold dark:bg-[#7B5EA7]/25'
+                      : 'bg-white/60 dark:bg-[#201538]/60 border-white/80 dark:border-white/10 text-[#1B1530] dark:text-[#F3EDFB] hover:bg-white'
                   }`}
                 >
                   <input
                     type="checkbox"
                     checked={isChecked || false}
                     onChange={() => handleAmenityToggle(amenity)}
-                    className="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5 border-slate-300 dark:border-slate-700"
+                    className="rounded accent-[#7B5EA7] w-4 h-4 cursor-pointer"
                   />
                   <span>{amenity}</span>
                 </label>
@@ -348,47 +350,47 @@ export function FilterSidebar({
         </div>
 
         {/* 7. Special Highlights */}
-        <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/80 space-y-2">
-          <label className="block text-xs font-bold text-slate-900 dark:text-slate-200 uppercase tracking-wider mb-2">
+        <div className="pt-3 border-t border-slate-200/50 dark:border-white/10 space-y-2">
+          <label className="block text-[11px] font-bold text-[#6B6580] dark:text-[#A89EC0] uppercase tracking-[0.08em] mb-2">
             Special Highlights
           </label>
 
-          <label className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer bg-white/70 dark:bg-slate-900/70">
-            <div className="flex items-center gap-2 text-xs font-medium text-slate-800 dark:text-slate-200">
-              <ShieldCheck size={16} className="text-emerald-600 dark:text-emerald-400" />
+          <label className="flex items-center justify-between p-3 rounded-2xl border border-white/80 dark:border-white/10 hover:border-[#7B5EA7]/30 cursor-pointer bg-white/70 dark:bg-[#201538]/70">
+            <div className="flex items-center gap-2.5 text-xs font-semibold text-[#1B1530] dark:text-[#F3EDFB]">
+              <ShieldCheck size={16} className="text-[#7B5EA7] dark:text-[#D9C8F0]" />
               <span>Verified Properties Only</span>
             </div>
             <input
               type="checkbox"
               checked={filters.verifiedOnly || false}
               onChange={(e) => onChange({ ...filters, verifiedOnly: e.target.checked })}
-              className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+              className="rounded accent-[#7B5EA7] w-4 h-4 cursor-pointer"
             />
           </label>
 
-          <label className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer bg-white/70 dark:bg-slate-900/70">
-            <div className="flex items-center gap-2 text-xs font-medium text-slate-800 dark:text-slate-200">
-              <Sparkles size={16} className="text-teal-500" />
+          <label className="flex items-center justify-between p-3 rounded-2xl border border-white/80 dark:border-white/10 hover:border-[#7B5EA7]/30 cursor-pointer bg-white/70 dark:bg-[#201538]/70">
+            <div className="flex items-center gap-2.5 text-xs font-semibold text-[#1B1530] dark:text-[#F3EDFB]">
+              <Sparkles size={16} className="text-[#7B5EA7] dark:text-[#D9C8F0]" />
               <span>Available Now</span>
             </div>
             <input
               type="checkbox"
               checked={filters.availableNowOnly || false}
               onChange={(e) => onChange({ ...filters, availableNowOnly: e.target.checked })}
-              className="rounded text-teal-600 focus:ring-teal-500 w-4 h-4"
+              className="rounded accent-[#7B5EA7] w-4 h-4 cursor-pointer"
             />
           </label>
 
-          <label className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer bg-white/70 dark:bg-slate-900/70">
-            <div className="flex items-center gap-2 text-xs font-medium text-slate-800 dark:text-slate-200">
-              <Armchair size={16} className="text-emerald-600 dark:text-emerald-400" />
+          <label className="flex items-center justify-between p-3 rounded-2xl border border-white/80 dark:border-white/10 hover:border-[#7B5EA7]/30 cursor-pointer bg-white/70 dark:bg-[#201538]/70">
+            <div className="flex items-center gap-2.5 text-xs font-semibold text-[#1B1530] dark:text-[#F3EDFB]">
+              <Armchair size={16} className="text-[#7B5EA7] dark:text-[#D9C8F0]" />
               <span>Furnished Only</span>
             </div>
             <input
               type="checkbox"
               checked={filters.furnishedOnly || false}
               onChange={(e) => onChange({ ...filters, furnishedOnly: e.target.checked })}
-              className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+              className="rounded accent-[#7B5EA7] w-4 h-4 cursor-pointer"
             />
           </label>
         </div>
@@ -396,18 +398,18 @@ export function FilterSidebar({
       </div>
 
       {isMobileDrawer && (
-        <div className="sticky bottom-0 pt-4 mt-6 bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex gap-2">
+        <div className="sticky bottom-0 pt-4 mt-6 bg-white dark:bg-[#161024] border-t border-slate-200 dark:border-white/10 flex gap-2">
           <button
             type="button"
             onClick={onReset}
-            className="flex-1 py-3 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-900 rounded-xl hover:bg-slate-200"
+            className="flex-1 py-3 text-xs font-bold uppercase tracking-[0.08em] text-[#6B6580] dark:text-[#A89EC0] bg-[#D9C8F0]/30 rounded-full hover:bg-[#D9C8F0]/60 cursor-pointer"
           >
             Reset
           </button>
           <button
             type="button"
             onClick={onCloseMobileDrawer}
-            className="flex-2 py-3 text-xs font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-md shadow-emerald-600/20"
+            className="flex-2 py-3 text-xs font-bold uppercase tracking-[0.08em] text-white bg-[#4B2E83] rounded-full hover:bg-[#7B5EA7] shadow-md shadow-[#4B2E83]/25 cursor-pointer"
           >
             Apply Filters
           </button>
