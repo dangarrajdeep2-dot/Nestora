@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://nestora.in';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://nestora-find.netlify.app';
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
