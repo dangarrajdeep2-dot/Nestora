@@ -51,8 +51,8 @@ export default async function HomePage() {
                 <span>Student Accommodations Discovery</span>
               </div>
 
-              {/* Main Heading: Condensed, Bold, Uppercase (Bebas Neue), first part in --primary, rest in --ink */}
-              <h1 className="font-heading text-5xl sm:text-7xl lg:text-8xl tracking-wider text-[#1B1530] dark:text-[#F3EDFB] leading-[0.95] mb-5">
+              {/* Main Heading: Space Grotesk, first part in --primary, rest in --ink */}
+              <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl tracking-tight text-[#1B1530] dark:text-[#F3EDFB] leading-[1.08] mb-5 font-bold">
                 <span className="text-[#7B5EA7] dark:text-[#9D7FD3]">Find your perfect stay</span> near your college
               </h1>
 
@@ -130,7 +130,7 @@ export default async function HomePage() {
               <div className="text-xs font-bold uppercase tracking-[0.08em] text-[#7B5EA7] dark:text-[#D9C8F0] mb-1">
                 Prime Student Localities
               </div>
-              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl tracking-wider text-[#1B1530] dark:text-white">
+              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#1B1530] dark:text-white">
                 <span className="text-[#7B5EA7] dark:text-[#9D7FD3]">Explore Popular Stays</span> by Hub
               </h2>
             </div>
@@ -180,7 +180,7 @@ export default async function HomePage() {
               <div className="text-xs font-bold uppercase tracking-[0.08em] text-[#7B5EA7] dark:text-[#D9C8F0] mb-1">
                 Handpicked Accommodations
               </div>
-              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl tracking-wider text-[#1B1530] dark:text-white">
+              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#1B1530] dark:text-white">
                 <span className="text-[#7B5EA7] dark:text-[#9D7FD3]">Top Rated PGs & Hostels</span> Near Campus
               </h2>
             </div>
@@ -222,7 +222,7 @@ export default async function HomePage() {
             <div className="text-xs font-bold uppercase tracking-[0.08em] text-[#7B5EA7] dark:text-[#D9C8F0] mb-1">
               Easy 4-Step Process
             </div>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl tracking-wider text-[#1B1530] dark:text-white mb-3">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#1B1530] dark:text-white mb-3">
               <span className="text-[#7B5EA7] dark:text-[#9D7FD3]">How Nestora Helps You</span> Find A Stay
             </h2>
             <p className="text-sm text-[#6B6580] dark:text-[#A89EC0] font-medium">
