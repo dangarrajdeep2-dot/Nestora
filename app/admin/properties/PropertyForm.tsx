@@ -665,34 +665,34 @@ export default function PropertyForm({
       )}
 
       {/* Top Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl backdrop-blur-xl w-full min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-3xl bg-white/80 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-sm dark:shadow-xl backdrop-blur-xl w-full min-w-0">
         <div className="flex items-center gap-3">
           <Link
             href="/admin/properties"
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
           >
             <ArrowLeft size={18} />
           </Link>
           <div>
-            <h2 className="text-lg font-black text-white">
+            <h2 className="text-lg font-black text-slate-900 dark:text-white">
               {mode === 'create' ? 'Create New Student Stay' : `Editing: ${title || 'Property'}`}
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {mode === 'create' ? 'Complete all structured fields to register a verified stay' : 'Update existing listing and sync relations'}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
-            <span className="text-slate-400 font-bold uppercase text-[10px]">Status:</span>
+          <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+            <span className="text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px]">Status:</span>
             <select
               value={verification}
               onChange={(e) => setVerification(e.target.value as 'verified' | 'unverified')}
-              className="bg-transparent text-emerald-400 font-bold focus:outline-none cursor-pointer"
+              className="bg-transparent text-emerald-600 dark:text-emerald-400 font-bold focus:outline-none cursor-pointer"
             >
-              <option value="verified" className="bg-slate-900 text-emerald-400">Published (Live)</option>
-              <option value="unverified" className="bg-slate-900 text-slate-400">Draft / Archived (Hidden)</option>
+              <option value="verified" className="bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400">Published (Live)</option>
+              <option value="unverified" className="bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400">Draft / Archived (Hidden)</option>
             </select>
           </div>
 
@@ -714,15 +714,15 @@ export default function PropertyForm({
       </div>
 
       {/* SECTION 1: Basic Information */}
-      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-800 bg-slate-900/80 space-y-5">
-        <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
-          <Building2 size={18} className="text-emerald-400" />
-          <h3 className="text-sm font-bold uppercase tracking-wider text-white">1. Basic Property Information</h3>
+      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 space-y-5 shadow-sm">
+        <div className="flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-800/80 pb-3">
+          <Building2 size={18} className="text-emerald-600 dark:text-emerald-400" />
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">1. Basic Property Information</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           <div className="sm:col-span-2 lg:col-span-3">
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Property Title *
             </label>
             <input
@@ -731,18 +731,18 @@ export default function PropertyForm({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Shanti Niketan Student Stay & PG"
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Property Type *
             </label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value as PropertyType)}
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
             >
               <option value="PG">PG (Paying Guest)</option>
               <option value="Hostel">Hostel</option>
@@ -752,13 +752,13 @@ export default function PropertyForm({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Gender Target *
             </label>
             <select
               value={gender}
               onChange={(e) => setGender(e.target.value as 'boys' | 'girls' | 'co-ed')}
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
             >
               <option value="boys">Boys</option>
               <option value="girls">Girls</option>
@@ -767,22 +767,22 @@ export default function PropertyForm({
           </div>
 
           <div className="flex items-center gap-6 pt-6">
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-300">
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
               <input
                 type="checkbox"
                 checked={isFurnished}
                 onChange={(e) => setIsFurnished(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-800 text-emerald-600 focus:ring-emerald-500 bg-slate-950"
+                className="w-4 h-4 rounded border-slate-300 dark:border-slate-800 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-slate-950 cursor-pointer"
               />
               <span>Fully Furnished</span>
             </label>
 
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-300">
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
               <input
                 type="checkbox"
                 checked={isAvailableNow}
                 onChange={(e) => setIsAvailableNow(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-800 text-emerald-600 focus:ring-emerald-500 bg-slate-950"
+                className="w-4 h-4 rounded border-slate-300 dark:border-slate-800 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-slate-950 cursor-pointer"
               />
               <span>Ready for Immediate Move-in</span>
             </label>
@@ -791,21 +791,21 @@ export default function PropertyForm({
       </div>
 
       {/* SECTION 2: Location & Address */}
-      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-800 bg-slate-900/80 space-y-5">
-        <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
-          <MapPin size={18} className="text-emerald-400" />
-          <h3 className="text-sm font-bold uppercase tracking-wider text-white">2. Location & Campus Proximity</h3>
+      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 space-y-5 shadow-sm">
+        <div className="flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-800/80 pb-3">
+          <MapPin size={18} className="text-emerald-600 dark:text-emerald-400" />
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">2. Location & Campus Proximity</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               City *
             </label>
             <select
               value={city}
               onChange={(e) => handleCityChange(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
             >
               {CITIES.map((c) => (
                 <option key={c} value={c}>{c}</option>
@@ -814,13 +814,13 @@ export default function PropertyForm({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Student Area / Locality *
             </label>
             <select
               value={areaSelect}
               onChange={(e) => setAreaSelect(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
             >
               {knownAreas.map((a) => (
                 <option key={a} value={a}>{a}</option>
@@ -831,7 +831,7 @@ export default function PropertyForm({
 
           {areaSelect === '__other__' && (
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Specify Custom Area *
               </label>
               <input
@@ -840,13 +840,13 @@ export default function PropertyForm({
                 value={customArea}
                 onChange={(e) => setCustomArea(e.target.value)}
                 placeholder="e.g. Near New Bus Stand"
-                className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
               />
             </div>
           )}
 
           <div className="sm:col-span-2 lg:col-span-3">
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Full Address *
             </label>
             <textarea
@@ -855,18 +855,18 @@ export default function PropertyForm({
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="e.g. Plot No 42, Near Kotecha Circle, Kalawad Road, Rajkot - 360005"
-              className="w-full px-4 py-2 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none resize-none"
+              className="w-full px-4 py-2 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none resize-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Nearby College (Optional)
             </label>
             <select
               value={nearbyCollegeId}
               onChange={(e) => setNearbyCollegeId(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
             >
               <option value="">-- None / Independent Landmark --</option>
               {filteredColleges.map((col) => (
@@ -878,7 +878,7 @@ export default function PropertyForm({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Landmark / Tagline (Optional)
             </label>
             <input
@@ -886,18 +886,18 @@ export default function PropertyForm({
               value={tagline}
               onChange={(e) => setTagline(e.target.value)}
               placeholder="e.g. 500m from University Gate 2"
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
             />
           </div>
 
           {/* Google Maps Location Link with Auto-generate & GPS extraction */}
-          <div className="bg-slate-950/80 border border-emerald-500/30 rounded-2xl p-4 space-y-2">
+          <div className="bg-emerald-500/[0.04] dark:bg-slate-950/80 border border-emerald-500/30 rounded-2xl p-4 space-y-2">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-              <label className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+              <label className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
                 <MapPin size={14} className="text-emerald-400 shrink-0" />
                 Google Maps Link (Recommended)
               </label>
-              <span className="text-[10px] text-emerald-300 font-semibold bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full w-fit">
+              <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full w-fit">
                 Direct Location Link
               </span>
             </div>
@@ -907,10 +907,10 @@ export default function PropertyForm({
               value={googleMapUrl}
               onChange={(e) => handleGoogleMapUrlChange(e.target.value)}
               placeholder="Paste Google Maps link (e.g. https://maps.app.goo.gl/... or https://maps.google.com/...)"
-              className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
             />
 
-            <p className="text-[11px] text-slate-400 leading-relaxed">
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
               💡 <strong>Tip:</strong> Google Maps me hostel search karke <strong>Share ➔ Copy Link</strong> karke yahan paste karein, ya direct neeche diye gaye button se automatically hostel ke name se Google Map link banayein!
             </p>
 
@@ -924,7 +924,7 @@ export default function PropertyForm({
                   const autoUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
                   setGoogleMapUrl(autoUrl);
                 }}
-                className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 font-semibold border border-emerald-500/30 transition flex items-center gap-1.5 cursor-pointer"
+                className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-500/30 transition flex items-center gap-1.5 cursor-pointer"
               >
                 <Sparkles size={13} className="text-emerald-400" />
                 <span>Auto-generate Link from Hostel Name ({title.trim() || 'Hostel'})</span>
@@ -935,7 +935,7 @@ export default function PropertyForm({
                   href={googleMapUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium border border-slate-700 transition flex items-center gap-1"
+                  className="text-xs px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium border border-slate-200 dark:border-slate-700 transition flex items-center gap-1"
                 >
                   <span>Test Link on Google Maps ↗</span>
                 </a>
@@ -943,7 +943,7 @@ export default function PropertyForm({
             </div>
 
             {googleMapUrl && (
-              <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
+              <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400 font-medium bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
                 <Check size={14} className="shrink-0" />
                 <span>Google Maps link successfully connected!</span>
               </div>
@@ -952,7 +952,7 @@ export default function PropertyForm({
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 text-[10px]">
+              <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5 text-[10px]">
                 Latitude (Optional)
               </label>
               <input
@@ -961,11 +961,11 @@ export default function PropertyForm({
                 value={latitude}
                 onChange={(e) => setLatitude(e.target.value)}
                 placeholder="22.2905"
-                className="w-full px-3 py-2 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-xs focus:border-emerald-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs focus:border-emerald-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 text-[10px]">
+              <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5 text-[10px]">
                 Longitude (Optional)
               </label>
               <input
@@ -974,7 +974,7 @@ export default function PropertyForm({
                 value={longitude}
                 onChange={(e) => setLongitude(e.target.value)}
                 placeholder="70.7818"
-                className="w-full px-3 py-2 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-xs focus:border-emerald-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs focus:border-emerald-500 focus:outline-none"
               />
             </div>
           </div>
@@ -982,15 +982,15 @@ export default function PropertyForm({
       </div>
 
       {/* SECTION 3: Pricing & Description */}
-      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-800 bg-slate-900/80 space-y-5">
-        <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
-          <DollarSign size={18} className="text-emerald-400" />
-          <h3 className="text-sm font-bold uppercase tracking-wider text-white">3. Pricing, Curfew & Overview</h3>
+      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 space-y-5 shadow-sm">
+        <div className="flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-800/80 pb-3">
+          <DollarSign size={18} className="text-emerald-600 dark:text-emerald-400" />
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">3. Pricing, Curfew & Overview</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Starting Monthly Rent (₹) *
             </label>
             <input
@@ -1000,12 +1000,12 @@ export default function PropertyForm({
               value={startingRent}
               onChange={(e) => setStartingRent(e.target.value)}
               placeholder="e.g. 5500"
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Security Deposit (₹)
             </label>
             <input
@@ -1014,12 +1014,12 @@ export default function PropertyForm({
               value={deposit}
               onChange={(e) => setDeposit(e.target.value)}
               placeholder="e.g. 5500"
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Gate Curfew Time
             </label>
             <input
@@ -1027,12 +1027,12 @@ export default function PropertyForm({
               value={gateClosingTime}
               onChange={(e) => setGateClosingTime(e.target.value)}
               placeholder="e.g. 10:00 PM"
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Notice Period (Days)
             </label>
             <input
@@ -1041,12 +1041,12 @@ export default function PropertyForm({
               value={noticePeriodDays}
               onChange={(e) => setNoticePeriodDays(e.target.value)}
               placeholder="30"
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
             />
           </div>
 
           <div className="sm:col-span-2 lg:col-span-4">
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Property Overview / Description (Optional)
             </label>
             <textarea
@@ -1054,23 +1054,23 @@ export default function PropertyForm({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe the atmosphere, study environment, walking distance to colleges, and key features..."
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none resize-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none resize-none"
             />
           </div>
         </div>
       </div>
 
       {/* SECTION 4: Room Configurations */}
-      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-800 bg-slate-900/80 space-y-5">
-        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 space-y-5 shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 pb-3">
           <div className="flex items-center gap-2">
-            <Bed size={18} className="text-emerald-400" />
-            <h3 className="text-sm font-bold uppercase tracking-wider text-white">4. Room Types & Sharing Configurations</h3>
+            <Bed size={18} className="text-emerald-600 dark:text-emerald-400" />
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">4. Room Types & Sharing Configurations</h3>
           </div>
           <button
             type="button"
             onClick={handleAddRoom}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white rounded-xl text-xs font-bold transition border border-emerald-500/30 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/10 dark:bg-emerald-600/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white rounded-xl text-xs font-bold transition border border-emerald-500/30 cursor-pointer"
           >
             <Plus size={14} />
             <span>Add Room Type</span>
@@ -1079,9 +1079,9 @@ export default function PropertyForm({
 
         <div className="space-y-4">
           {rooms.map((room, idx) => (
-            <div key={idx} className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4">
+            <div key={idx} className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-black uppercase tracking-wider text-emerald-400">
+                <span className="text-xs font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
                   Room Configuration #{idx + 1}
                 </span>
                 {rooms.length > 1 && (
@@ -1098,7 +1098,7 @@ export default function PropertyForm({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-400 uppercase mb-1">
                     Room Name / Title *
                   </label>
                   <input
@@ -1107,18 +1107,18 @@ export default function PropertyForm({
                     value={room.room_type}
                     onChange={(e) => handleRoomChange(idx, 'room_type', e.target.value)}
                     placeholder="e.g. 2 Sharing Deluxe AC"
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-400 uppercase mb-1">
                     Sharing Capacity *
                   </label>
                   <select
                     value={room.sharing}
                     onChange={(e) => handleRoomChange(idx, 'sharing', e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none cursor-pointer"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs focus:border-emerald-500 focus:outline-none cursor-pointer"
                   >
                     <option value="single">Single Occupancy</option>
                     <option value="2-sharing">2 Sharing</option>
@@ -1128,7 +1128,7 @@ export default function PropertyForm({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-400 uppercase mb-1">
                     Rent (₹ / month) *
                   </label>
                   <input
@@ -1137,12 +1137,12 @@ export default function PropertyForm({
                     min="0"
                     value={room.rent}
                     onChange={(e) => handleRoomChange(idx, 'rent', Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-400 uppercase mb-1">
                     Available Beds / Total *
                   </label>
                   <div className="flex items-center gap-2">
@@ -1153,9 +1153,9 @@ export default function PropertyForm({
                       value={room.available_beds}
                       onChange={(e) => handleRoomChange(idx, 'available_beds', Number(e.target.value))}
                       placeholder="Avail"
-                      className="w-1/2 px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none"
+                      className="w-1/2 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs focus:border-emerald-500 focus:outline-none"
                     />
-                    <span className="text-slate-500">/</span>
+                    <span className="text-slate-400 dark:text-slate-500 font-bold">/</span>
                     <input
                       type="number"
                       required
@@ -1163,7 +1163,7 @@ export default function PropertyForm({
                       value={room.total_beds}
                       onChange={(e) => handleRoomChange(idx, 'total_beds', Number(e.target.value))}
                       placeholder="Total"
-                      className="w-1/2 px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none"
+                      className="w-1/2 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs focus:border-emerald-500 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -1174,16 +1174,16 @@ export default function PropertyForm({
       </div>
 
       {/* SECTION 5: Amenities */}
-      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-800 bg-slate-900/80 space-y-5">
-        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 space-y-5 shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 pb-3">
           <div className="flex items-center gap-2">
-            <Sparkles size={18} className="text-emerald-400" />
-            <h3 className="text-sm font-bold uppercase tracking-wider text-white">5. Amenities & Facilities</h3>
+            <Sparkles size={18} className="text-emerald-600 dark:text-emerald-400" />
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">5. Amenities & Facilities</h3>
           </div>
           <button
             type="button"
             onClick={() => setAmenities(STANDARD_AMENITIES)}
-            className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
+            className="text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-semibold cursor-pointer"
           >
             Select All Standard
           </button>
@@ -1199,12 +1199,12 @@ export default function PropertyForm({
                 onClick={() => handleToggleAmenity(amenity)}
                 className={`p-3 rounded-2xl border text-xs font-semibold flex items-center justify-between transition cursor-pointer text-left ${
                   isChecked
-                    ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-bold'
+                    : 'bg-white/90 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
                 <span>{amenity}</span>
-                {isChecked && <Check size={14} className="text-emerald-400" />}
+                {isChecked && <Check size={14} className="text-emerald-600 dark:text-emerald-400" />}
               </button>
             );
           })}
@@ -1212,33 +1212,33 @@ export default function PropertyForm({
       </div>
 
       {/* SECTION 6: Food & Mess Details */}
-      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-800 bg-slate-900/80 space-y-5">
-        <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
-          <Utensils size={18} className="text-emerald-400" />
-          <h3 className="text-sm font-bold uppercase tracking-wider text-white">6. Food & Mess Details</h3>
+      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 space-y-5 shadow-sm">
+        <div className="flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-800/80 pb-3">
+          <Utensils size={18} className="text-emerald-600 dark:text-emerald-400" />
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">6. Food & Mess Details</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           <div className="flex items-center gap-3 pt-2">
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-300">
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
               <input
                 type="checkbox"
                 checked={foodIncluded}
                 onChange={(e) => setFoodIncluded(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-800 text-emerald-600 focus:ring-emerald-500 bg-slate-950"
+                className="w-4 h-4 rounded border-slate-300 dark:border-slate-800 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-slate-950 cursor-pointer"
               />
               <span>Meals Included in Monthly Rent</span>
             </label>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Dietary Preference *
             </label>
             <select
               value={foodType}
               onChange={(e) => setFoodType(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
             >
               <option value="Pure Veg">Pure Veg</option>
               <option value="Veg & Non-Veg">Veg & Non-Veg</option>
@@ -1248,7 +1248,7 @@ export default function PropertyForm({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Mess Serving Timings
             </label>
             <input
@@ -1256,12 +1256,12 @@ export default function PropertyForm({
               value={foodTiming}
               onChange={(e) => setFoodTiming(e.target.value)}
               placeholder="e.g. 7:30 - 9:30 AM | 7:45 - 10:00 PM"
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
             />
           </div>
 
           <div className="sm:col-span-2 lg:col-span-3">
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
               Meals Provided:
             </label>
             <div className="flex flex-wrap gap-3">
@@ -1274,12 +1274,12 @@ export default function PropertyForm({
                     onClick={() => handleToggleMeal(meal)}
                     className={`px-4 py-2 rounded-xl border text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
                       isChecked
-                        ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
-                        : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-bold'
+                        : 'bg-white/90 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
                     <span>{meal}</span>
-                    {isChecked && <Check size={13} className="text-emerald-400" />}
+                    {isChecked && <Check size={13} className="text-emerald-600 dark:text-emerald-400" />}
                   </button>
                 );
               })}
@@ -1287,7 +1287,7 @@ export default function PropertyForm({
           </div>
 
           <div className="sm:col-span-2 lg:col-span-3">
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Menu / Mess Description
             </label>
             <textarea
@@ -1295,17 +1295,17 @@ export default function PropertyForm({
               value={foodDescription}
               onChange={(e) => setFoodDescription(e.target.value)}
               placeholder="Daily rotating vegetarian Gujarati, Kathiyawadi & Punjabi menu with sunday specials..."
-              className="w-full px-4 py-2 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none resize-none"
+              className="w-full px-4 py-2 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none resize-none"
             />
           </div>
         </div>
       </div>
 
       {/* SECTION 7: House Rules */}
-      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-800 bg-slate-900/80 space-y-5">
-        <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
-          <ShieldCheck size={18} className="text-emerald-400" />
-          <h3 className="text-sm font-bold uppercase tracking-wider text-white">7. House Rules & Safety Policies</h3>
+      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 space-y-5 shadow-sm">
+        <div className="flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-800/80 pb-3">
+          <ShieldCheck size={18} className="text-emerald-600 dark:text-emerald-400" />
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">7. House Rules & Safety Policies</h3>
         </div>
 
         <div className="space-y-4">
@@ -1319,12 +1319,12 @@ export default function PropertyForm({
                   onClick={() => handleToggleRule(rule)}
                   className={`p-3 rounded-2xl border text-xs font-semibold flex items-center justify-between transition cursor-pointer text-left ${
                     isChecked
-                      ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+                      ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-bold'
+                      : 'bg-white/90 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <span>{rule}</span>
-                  {isChecked && <Check size={14} className="text-emerald-400 shrink-0" />}
+                  {isChecked && <Check size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />}
                 </button>
               );
             })}
@@ -1332,10 +1332,10 @@ export default function PropertyForm({
 
           {/* Custom Rules List */}
           {customRules.length > 0 && (
-            <div className="space-y-2 pt-2 border-t border-slate-800/60">
-              <span className="text-xs font-bold uppercase text-slate-400">Custom House Rules:</span>
+            <div className="space-y-2 pt-2 border-t border-slate-200/80 dark:border-slate-800/60">
+              <span className="text-xs font-bold uppercase text-slate-600 dark:text-slate-400">Custom House Rules:</span>
               {customRules.map((cr, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                <div key={idx} className="flex items-center justify-between p-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white">
                   <span>{cr}</span>
                   <button
                     type="button"
@@ -1356,12 +1356,12 @@ export default function PropertyForm({
               value={newCustomRule}
               onChange={(e) => setNewCustomRule(e.target.value)}
               placeholder="Type an additional custom house rule..."
-              className="flex-1 px-4 py-2 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-xs focus:border-emerald-500 focus:outline-none"
+              className="flex-1 px-4 py-2 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs focus:border-emerald-500 focus:outline-none"
             />
             <button
               type="button"
               onClick={handleAddCustomRule}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition cursor-pointer"
             >
               Add Rule
             </button>
@@ -1370,15 +1370,15 @@ export default function PropertyForm({
       </div>
 
       {/* SECTION 8: Owner & Management Contact */}
-      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-800 bg-slate-900/80 space-y-5">
-        <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
-          <Phone size={18} className="text-emerald-400" />
-          <h3 className="text-sm font-bold uppercase tracking-wider text-white">8. Owner / Manager Contact (Verified Connect)</h3>
+      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 space-y-5 shadow-sm">
+        <div className="flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-800/80 pb-3">
+          <Phone size={18} className="text-emerald-600 dark:text-emerald-400" />
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">8. Owner / Manager Contact (Verified Connect)</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Contact Person Name *
             </label>
             <input
@@ -1386,18 +1386,18 @@ export default function PropertyForm({
               value={ownerName}
               onChange={(e) => setOwnerName(e.target.value)}
               placeholder="e.g. Ramesh Patel"
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Role
             </label>
             <select
               value={ownerRole}
               onChange={(e) => setOwnerRole(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
             >
               <option value="Owner">Owner</option>
               <option value="Warden">Warden</option>
@@ -1407,7 +1407,7 @@ export default function PropertyForm({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Phone Number (10 Digits) *
             </label>
             <input
@@ -1415,12 +1415,12 @@ export default function PropertyForm({
               value={ownerPhone}
               onChange={(e) => setOwnerPhone(e.target.value)}
               placeholder="9825123456"
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               WhatsApp Number
             </label>
             <input
@@ -1428,30 +1428,30 @@ export default function PropertyForm({
               value={ownerWhatsapp}
               onChange={(e) => setOwnerWhatsapp(e.target.value)}
               placeholder="9825123456"
-              className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none"
             />
           </div>
         </div>
       </div>
 
       {/* SECTION 9: Photos */}
-      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-800 bg-slate-900/80 space-y-5">
-        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 space-y-5 shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 pb-3">
           <div className="flex items-center gap-2">
-            <ImageIcon size={18} className="text-emerald-400" />
-            <h3 className="text-sm font-bold uppercase tracking-wider text-white">9. Property Photos</h3>
+            <ImageIcon size={18} className="text-emerald-600 dark:text-emerald-400" />
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">9. Property Photos</h3>
           </div>
           <button
             type="button"
             onClick={handleLoadSampleImages}
-            className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
+            className="text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-semibold cursor-pointer"
           >
             + Add Sample PG Photos
           </button>
         </div>
 
         {/* Tab selection: Laptop Upload vs Direct URL */}
-        <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
+        <div className="flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-800/80 pb-3">
           <button
             type="button"
             onClick={() => {
@@ -1462,7 +1462,7 @@ export default function PropertyForm({
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
               activeImageTab === 'upload'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'bg-slate-950/60 text-slate-400 hover:text-white hover:bg-slate-800/60'
+                : 'bg-slate-100 dark:bg-slate-950/60 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/60'
             }`}
           >
             <UploadCloud size={15} />
@@ -1478,7 +1478,7 @@ export default function PropertyForm({
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
               activeImageTab === 'url'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'bg-slate-950/60 text-slate-400 hover:text-white hover:bg-slate-800/60'
+                : 'bg-slate-100 dark:bg-slate-950/60 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/60'
             }`}
           >
             <ImageIcon size={15} />
@@ -1504,7 +1504,7 @@ export default function PropertyForm({
         {/* Tab 1: Laptop Upload Dropzone */}
         {activeImageTab === 'upload' && (
           <div className="space-y-3">
-            <label className="relative border-2 border-dashed border-slate-700 hover:border-emerald-500/60 bg-slate-950/50 hover:bg-slate-950/80 rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center text-center cursor-pointer transition group">
+            <label className="relative border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500/60 bg-slate-50/60 dark:bg-slate-950/50 hover:bg-slate-100/60 dark:hover:bg-slate-950/80 rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center text-center cursor-pointer transition group">
               <input
                 type="file"
                 multiple
@@ -1520,11 +1520,11 @@ export default function PropertyForm({
                   <UploadCloud size={24} />
                 )}
               </div>
-              <div className="text-sm font-bold text-white mb-1">
+              <div className="text-sm font-bold text-slate-900 dark:text-white mb-1">
                 {uploading ? 'Uploading to Supabase Storage...' : 'Click to select photos from your laptop'}
               </div>
-              <p className="text-xs text-slate-400 max-w-sm">
-                Supported formats: <strong className="text-slate-300">JPG, JPEG, PNG, WEBP</strong> (Max 5MB per image).
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm">
+                Supported formats: <strong className="text-slate-700 dark:text-slate-300">JPG, JPEG, PNG, WEBP</strong> (Max 5MB per image).
               </p>
             </label>
           </div>
@@ -1548,7 +1548,7 @@ export default function PropertyForm({
                   }
                 }}
                 placeholder="https://images.unsplash.com/photo-... or https://...image.jpg"
-                className="flex-1 px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-xs focus:border-emerald-500 focus:outline-none"
+                className="flex-1 px-4 py-2.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs focus:border-emerald-500 focus:outline-none"
               />
               <button
                 type="button"
@@ -1558,7 +1558,7 @@ export default function PropertyForm({
                 Add URL
               </button>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
               Direct image file links only (.jpg, .png, .webp, or image CDNs). Web viewing pages (Google Drive / Photos) will be rejected.
             </p>
           </div>
@@ -1567,7 +1567,7 @@ export default function PropertyForm({
         {/* Current Image Gallery List */}
         {images.length > 0 ? (
           <div className="space-y-2 pt-2">
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+            <div className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center justify-between">
               <span>Added Photos ({images.length})</span>
               <span className="text-[11px] text-slate-500 font-normal">First photo will be displayed as the main cover</span>
             </div>
@@ -1578,8 +1578,8 @@ export default function PropertyForm({
                 return (
                   <div
                     key={idx}
-                    className={`rounded-2xl border bg-slate-950 overflow-hidden shadow-md transition flex flex-col ${
-                      isUnsupported ? 'border-amber-500/50 ring-1 ring-amber-500/30' : 'border-slate-800'
+                    className={`rounded-2xl border bg-white dark:bg-slate-950 overflow-hidden shadow-sm transition flex flex-col ${
+                      isUnsupported ? 'border-amber-500/50 ring-1 ring-amber-500/30' : 'border-slate-200 dark:border-slate-800'
                     }`}
                   >
                     <div className="relative aspect-video w-full overflow-hidden bg-slate-900">
@@ -1609,7 +1609,7 @@ export default function PropertyForm({
                     </div>
 
                     {/* Action Controls - Clearly Visible */}
-                    <div className="p-2.5 bg-slate-950 flex flex-wrap items-center justify-between gap-1.5 border-t border-slate-800/80">
+                    <div className="p-2.5 bg-slate-50 dark:bg-slate-950 flex flex-wrap items-center justify-between gap-1.5 border-t border-slate-200/80 dark:border-slate-800/80">
                       {idx === 0 ? (
                         <span className="text-[11px] font-bold text-emerald-400 px-2 py-1 bg-emerald-500/10 rounded-lg border border-emerald-500/20 flex items-center gap-1">
                           ★ Main Cover
@@ -1618,7 +1618,7 @@ export default function PropertyForm({
                         <button
                           type="button"
                           onClick={() => handleSetAsCover(idx)}
-                          className="px-2.5 py-1 bg-slate-800 hover:bg-emerald-600 text-slate-200 hover:text-white rounded-lg text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 border border-slate-700"
+                          className="px-2.5 py-1 bg-white hover:bg-emerald-600 text-slate-700 hover:text-white dark:bg-slate-800 dark:hover:bg-emerald-600 dark:text-slate-200 dark:hover:text-white rounded-lg text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 border border-slate-200 dark:border-slate-700"
                           title="Set as Cover photo"
                         >
                           ★ Set as Cover
@@ -1630,7 +1630,7 @@ export default function PropertyForm({
                           <button
                             type="button"
                             onClick={() => handleMoveImage(idx, 'left')}
-                            className="p-1 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-lg text-xs cursor-pointer transition border border-slate-800"
+                            className="p-1 bg-white hover:bg-slate-100 text-slate-600 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-300 rounded-lg text-xs cursor-pointer transition border border-slate-200 dark:border-slate-800"
                             title="Move left (earlier in order)"
                           >
                             <ChevronLeft size={13} />
@@ -1640,7 +1640,7 @@ export default function PropertyForm({
                           <button
                             type="button"
                             onClick={() => handleMoveImage(idx, 'right')}
-                            className="p-1 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-lg text-xs cursor-pointer transition border border-slate-800"
+                            className="p-1 bg-white hover:bg-slate-100 text-slate-600 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-300 rounded-lg text-xs cursor-pointer transition border border-slate-200 dark:border-slate-800"
                             title="Move right (later in order)"
                           >
                             <ChevronRight size={13} />
@@ -1663,17 +1663,17 @@ export default function PropertyForm({
             </div>
           </div>
         ) : (
-          <div className="p-6 rounded-2xl border border-dashed border-slate-800 text-center text-xs text-slate-500">
+          <div className="p-6 rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 text-center text-xs text-slate-500">
             No photos added yet. Upload from laptop or paste a direct image URL above.
           </div>
         )}
       </div>
 
       {/* Bottom Sticky Submit Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-slate-800/80">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
         <Link
           href="/admin/properties"
-          className="px-5 py-2.5 border border-slate-800 text-slate-400 hover:bg-slate-900 rounded-xl text-xs font-semibold transition"
+          className="px-5 py-2.5 border border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl text-xs font-semibold transition"
         >
           Cancel
         </Link>
